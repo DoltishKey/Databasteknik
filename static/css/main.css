@@ -1,0 +1,21 @@
+.container{
+    padding:1em 2em;
+}
+
+#spelschema{
+    font-size:1.4em;
+
+}
+
+#start_tid, #slut_tid, #boka_spelning{
+    padding:5px;
+}
+
+#do_booking{
+    background-color:#E4F1FE;
+}
+
+#do_booking:hover{
+    background-color:#59ABE3;
+    color:white;
+}
