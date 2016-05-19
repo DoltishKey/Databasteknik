@@ -10,11 +10,7 @@ cursor = None
 def call_database():
 	global db
 	global cursor
-<<<<<<< HEAD
-	db = MySQLdb.connect(host="195.178.232.16", port=3306, user="af6307", passwd="Hejhejhej1", db="AF6307");
-=======
 	db = MySQLdb.connect(host="195.178.232.16", port=3306, user="af6307", passwd="Hejhejhej1", db="af6307");
->>>>>>> origin/master
 	cursor = db.cursor()
 	return cursor
 
