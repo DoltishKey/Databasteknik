@@ -32,30 +32,20 @@
                     <h1>Dag 1 </h1>
                     <table class="table">
                         <tr>
-                            <th>Bandnamn</th>
+                            <th>Band</th>
                             <th>Start-tid</th>
                             <th>Slut-tid</th>
                             <th>Scen</th>
                         </tr>
-                        <tr>
-                            <td>Lasse Stefanz</td>
-                            <td>18.00</td>
-                            <td>20:00</td>
-                            <td>Mallorca</td>
-                            <td><button type="submit" class="btn btn-default">ändra/ta bort</button><td>
-                        </tr>
-                        <tr>
-                            <td>Metallica</td>
-                            <td>21.00</td>
-                            <td>23:59</td>
-                            <td>Dieseltältet</td>
-                        </tr>
-                        <tr>
-                            <td>Håkan Hellström</td>
-                            <td>22:30</td>
-                            <td>23:59</td>
-                            <td>Åkanten</td>
-                        </tr>
+                        %for each in spelschema:
+                            <tr>
+                                <td>{{each[0]}}</td>
+                                <td>{{each[3]}}</td>
+                                <td>{{each[4]}}</td>
+                                <td>{{each[5]}}</td>
+                                <td><button type="submit" class="btn btn-default">ändra/ta bort</button><td>
+                            </tr>
+                        %end
                     </table>
                 </div>
             </div>
