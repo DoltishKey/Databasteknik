@@ -95,6 +95,10 @@ $(document).ready(function () {
         $(this).popover('toggle');
     });
 
+    $('.get_band_info').click(function(){
+        $(this).popover('toggle');
+    });
+
 
 
 });

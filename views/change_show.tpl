@@ -13,21 +13,9 @@
             <li role="navigation" class="active"><a href="/edith_play">Ändra/Ta bort spelning</a></li>
         </ul>
         <div id="show" class="col-md-10">
-            <div class="more_info col-md-3">
-                <h3>Ändra spelning</h3>
-                <div class="form-group">
-                    <label for="bandnamn">Välj Band</label>
-                    <select class="form-control">
-                        <option></option>
-                        <option>Lasse Stefanz</option>
-                        <option>Metallica</option>
-                        <option>Håkan Hellström</option>
-                        <option>Prince</option>
-                    </select>
-                </div>
-            </div>
+
             <div class="table-responsive" id="spelschema">
-                <div class="col-md-12">
+                <div class="col-md-8 col-md-offset-2">
                     <!-- Sortera efter scen och dag -->
                     <h1>Dag 1 </h1>
                     <table class="table">
@@ -39,11 +27,16 @@
                         </tr>
                         %for each in spelschema:
                             <tr>
-                                <td>{{each[0]}}</td>
-                                <td>{{each[3]}}</td>
-                                <td>{{each[4]}}</td>
-                                <td>{{each[5]}}</td>
-                                <td><button type="submit" class="btn btn-default">ändra/ta bort</button><td>
+                                <td>{{each[1]}}</td>
+                                <td>{{each[6]}}</td>
+                                <td>{{each[7]}}</td>
+                                <td>{{each[8]}}</td>
+                                <form method="GET" action="/edith_play/{{each[0]}}">
+                                    <td><button type="submit" class="btn btn-default">ändra</button><td>
+                                </form>
+                                <form method="POST" action="/edith_play/{{each[0]}}/{{each[9]}}/del">
+                                    <td><button type="submit" class="btn btn-default">ta bort</button><td>
+                                </form>
                             </tr>
                         %end
                     </table>

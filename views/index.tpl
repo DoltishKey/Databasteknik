@@ -22,10 +22,14 @@
                     </tr>
                     %for each in spelschema:
                         <tr>
-                            <td>{{each[0]}}</td>
-                            <td>{{each[3]}}</td>
-                            <td>{{each[4]}}</td>
-                            <td>{{each[5]}}</td>
+                            <td>{{each[1]}}</td>
+                            <td>{{each[6]}}</td>
+                            <td>{{each[7]}}</td>
+                            <td>{{each[8]}}</td>
+                            <td><a href="/bandinfo/{{each[0]}}"><button type="button" class="btn btn-default"
+                            data-container="body" data-toggle="popover" data-placement="right"
+                            data-html="true">Info
+                        </button></a></td>
                         </tr>
                     %end
                 </table>

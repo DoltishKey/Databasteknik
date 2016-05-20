@@ -22,18 +22,37 @@ def hang_up_on_database():
 @route('/')
 def index():
 	cursor=call_database()
-	sql="SELECT band.namn as bandNamn, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
+	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
 		DATE_FORMAT(spelar.slut_tid, '%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
 		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn as scenNamn  FROM spelar\
 			JOIN scen\
 				ON scen.id=spelar.scen_id\
 			JOIN band\
 				ON band.id=spelar.band_id"
-
-	cursor.execute(sql)
+	cursor.execute(sql_spelschema)
 	spelschema=cursor.fetchall()
+
 	hang_up_on_database()
 	return template('index', pageTitle='Start', spelschema=spelschema)
+
+@route('/bandinfo/<nr>')
+def bandinfo(nr):
+	nr=int(nr)
+	cursor=call_database()
+	sql_bandinfo="SELECT band.namn, band.stil, band.ursprungland FROM band WHERE band.id='%d'" %(nr)
+	cursor.execute(sql_bandinfo)
+	bandinfo=cursor.fetchall()
+
+	sql_artister="SELECT artist.* FROM artist\
+					join spelar_i\
+					on artist.id=spelar_i.artist_id\
+					WHERE spelar_i.band_id='%d'" %(nr)
+	cursor.execute(sql_artister)
+	artister=cursor.fetchall()
+	hang_up_on_database()
+
+	return template('bandinfo', pageTitle="bandinfo", bandinfo=bandinfo, artister=artister)
+
 
 @route('/book_band')
 def band_booking():
@@ -160,7 +179,7 @@ def new_show():
 	cursor.execute(sql_scen)
 	scener=cursor.fetchall()
 
-	sql_spelschema="SELECT band.namn as bandNamn, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
+	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
 		DATE_FORMAT(spelar.slut_tid, '%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
 		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn as scenNamn  FROM spelar\
 			JOIN scen\
@@ -200,9 +219,9 @@ def new_show_post():
 @route('/edith_play')
 def security():
 	cursor=call_database()
-	sql_spelschema="SELECT band.namn as bandNamn, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
+	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
 		DATE_FORMAT(spelar.slut_tid, '%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
-		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn as scenNamn  FROM spelar\
+		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn, scen.id  FROM spelar\
 			JOIN scen\
 				ON scen.id=spelar.scen_id\
 			JOIN band\
@@ -212,6 +231,69 @@ def security():
 	hang_up_on_database()
 	return template('change_show', pageTitle='Spelning', spelschema=spelschema)
 
+
+@route('/edith_play/<nr>')
+def edit_show(nr):
+	nr=int(nr)
+	cursor=call_database()
+	sql_show_info="SELECT band.id, band.namn, band.stil, band.ursprungland, spelar.start_tid,\
+					spelar.slut_tid, scen.namn, scen.id FROM spelar\
+					JOIN scen\
+						ON scen.id=spelar.scen_id\
+					JOIN band\
+						ON band.id=spelar.band_id\
+					WHERE band.id=%s"
+	cursor.execute(sql_show_info,(nr,))
+	show_info=cursor.fetchall()
+
+	sql_scen="SELECT * FROM scen"
+	cursor.execute(sql_scen)
+	scener=cursor.fetchall()
+
+	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
+		DATE_FORMAT(spelar.slut_tid, '%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
+		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn as scenNamn  FROM spelar\
+			JOIN scen\
+				ON scen.id=spelar.scen_id\
+			JOIN band\
+				ON band.id=spelar.band_id"
+	cursor.execute(sql_spelschema)
+	spelschema=cursor.fetchall()
+
+	hang_up_on_database()
+	return template('which_show', pageTitle="", show_info=show_info, scener=scener, spelschema=spelschema)
+
+
+@route('/edith_play/<band>/<scen>', method="POST")
+def update_shows(band, scen):
+	cursor=call_database()
+	band_id=int(band)
+	scen=int(scen)
+	vilken_scen=request.forms.get('stage_name')
+	start_tid=request.forms.get('start_tid')
+	slut_tid=request.forms.get('slut_tid')
+
+	sql_scen_id="SELECT id FROM scen WHERE namn='%s'" %(vilken_scen)
+	cursor.execute(sql_scen_id)
+	scen_id=cursor.fetchall()
+
+	sql_changed="UPDATE spelar SET Start_tid=%s, Slut_tid=%s, Scen_id=%s WHERE spelar.Band_id=%s AND spelar.Scen_id=%s"
+	cursor.execute(sql_changed, (start_tid, slut_tid, scen_id, band_id, scen,))
+	db.commit()
+	hang_up_on_database()
+	redirect('/edith_play')
+
+@route('/edith_play/<band>/<scen>/del', method="POST")
+def delete_show(band, scen):
+	cursor=call_database()
+	band=int(band)
+	scen=int(scen)
+
+	sql_del_show="DELETE FROM spelar WHERE spelar.Scen_id=%s AND spelar.Band_id=%s"
+	cursor.execute(sql_del_show,(scen, band,))
+	db.commit()
+	hang_up_on_database()
+	redirect('/edith_play')
 
 @route('/contact')
 def contact():
