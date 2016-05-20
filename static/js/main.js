@@ -91,6 +91,17 @@ $(document).ready(function () {
         $(this).parents('td').prev().find('.change_staff_security').show();
     });
 
+
+    $('.change_staff_contact').hide();
+    $('.save_contact').hide();
+    $('.change_contact').click(function(){
+        $(this).parents('td').find('.change_staff_contact').show();
+        $(this).parents('td').find('.save_contact').show();
+        $(this).hide();
+    });
+
+
+
     $('.get_security_info').click(function(){
         $(this).popover('toggle');
     });

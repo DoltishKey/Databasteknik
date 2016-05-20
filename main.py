@@ -299,7 +299,7 @@ def delete_show(band, scen):
 def contact():
 	cursor = call_database()
 
-	sql="SELECT J4.antal_artister, J1.namn \
+	sql="SELECT J4.antal_artister, J1.namn, J1.id \
 			FROM (SELECT J3.band_id, COUNT(J3.band_id) AS antal_artister \
 				FROM (SELECT artist.Namn, spelar_i.band_id \
 					FROM spelar_i JOIN artist ON artist.id = spelar_i.Artist_id) as J3 \
@@ -312,36 +312,92 @@ def contact():
 
 	cursor.execute(sql)
 	result = cursor.fetchall()
+
+	sql = "SELECT J10.Pers_nr, J10.Namn, COUNT(J10.Artist_id) FROM( \
+	SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
+	(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
+	RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
+	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.Pers_nr \
+	WHERE sakerhetsansvarig.Pers_nr Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
+	LEFT JOIN spelar_i \
+	ON J5.band_id = spelar_i.Band_id) as J10 \
+	GROUP BY J10.Pers_nr"
+	cursor.execute(sql)
+	candidates = cursor.fetchall()
+
+
+	return template('contact', pageTitle='Kontaktperson', bands = result, candidates=candidates)
+
+@route('/do_assign_contact/<band_id>', method="POST")
+def do_assign_contact(band_id):
+	cursor = call_database()
+	global db
+	kontaktperson=int(request.forms.get('selected_candidate'))
+	band_id = int(band_id)
+	sql="INSERT INTO kontakt(Pers_nr, Band_id) VALUES( (SELECT Pers_nr FROM personal WHERE Pers_nr = %s), (SELECT id FROM band WHERE id = %s) )"
+	cursor.execute(sql, (kontaktperson, band_id,))
+	db.commit()
 	hang_up_on_database()
+	redirect('/contact')
 
-	sql = "SELECT J10.Pers_nr, COUNT(DISTINCT J10.Artist_id) FROM( \
-		select J8.* from (SELECT Artist_id, J5.Pers_nr FROM \
-		(SELECT kontakt.band_id, J1.Pers_nr FROM kontakt \
-		LEFT JOIN (SELECT personal.Pers_nr FROM personal LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.Pers_nr WHERE sakerhetsansvarig.Pers_nr Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
-		JOIN spelar_i \
-		ON J5.band_id = spelar_i.Band_id) as J8 \
-		union \
-		select J9.id, null from \
-		(SELECT J4.id FROM \
-		(SELECT artist.id, spelar_i.band_id \
-		FROM spelar_i \
-		JOIN artist \
-		ON artist.id = spelar_i.Artist_id) as J4 \
-		JOIN ( \
-		SELECT band.id \
-		FROM band LEFT JOIN kontakt \
-		ON kontakt.Band_id = band.ID \
-		WHERE kontakt.Pers_nr Is Null) as J6 \
-		ON J6.id = J4.band_id) as J9) as J10 \
-		WHERE J10.Pers_nr IS NOT NULL \
-		GROUP BY J10.Pers_nr"
+@route('/contact_by_band')
+def contact_by_band():
+	cursor = call_database()
+	sql="SELECT J1.namn, J1.Pers_nr, J1.band_id, J2.bandnamn, J2.antal_artister, J1.tele \
+			FROM (SELECT personal.namn, personal.Pers_nr, kontakt.band_id, personal.tele \
+			 	FROM kontakt \
+				JOIN personal \
+				ON kontakt.Pers_nr = personal.Pers_nr) as J1 \
+			JOIN \
+				(SELECT band.id, band.namn as bandnamn, COUNT(artist.namn) AS antal_artister \
+				FROM spelar_i \
+					JOIN band \
+					ON spelar_i.band_id = band.id \
+					JOIN artist \
+					ON artist.id = spelar_i.artist_id \
+				GROUP BY band.id) as J2 \
+			ON J1.band_id = J2.id"
+	cursor.execute(sql)
+	band_info = cursor.fetchall()
+
+	sql = "SELECT J10.Pers_nr, J10.Namn, COUNT(J10.Artist_id) FROM( \
+	SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
+	(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
+	RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
+	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.Pers_nr \
+	WHERE sakerhetsansvarig.Pers_nr Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
+	LEFT JOIN spelar_i \
+	ON J5.band_id = spelar_i.Band_id) as J10 \
+	GROUP BY J10.Pers_nr"
+	cursor.execute(sql)
+	candidates = cursor.fetchall()
+
+	hang_up_on_database()
+	return template('contact_by_band', pageTitle='Kontaktperson för band', kontakt_info = band_info, candidates = candidates)
+
+@route('/update_contact/<band_id>', method="POST")
+def update_contact(band_id):
+	cursor = call_database()
+	global db
+	band_id = int(band_id)
+	new_contact= int(request.forms.get('new_contact'))
+	sql="UPDATE kontakt SET Pers_nr = %s WHERE Band_id = %s"
+	cursor.execute(sql, (new_contact, band_id,))
+	db.commit()
+	hang_up_on_database()
+	redirect('/contact_by_band')
 
 
-
-
-	return template('contact', pageTitle='Kontaktperson', bands = result)
-
-
+@route('/remove_contact/<band_id>', method="POST")
+def remove_contact(band_id):
+	cursor = call_database()
+	global db
+	band_id = int(band_id)
+	sql = "DELETE FROM kontakt WHERE band_id = %s"
+	cursor.execute(sql, (band_id,))
+	db.commit()
+	hang_up_on_database()
+	redirect('/contact_by_band')
 
 
 '''********Övriga Routes********'''
