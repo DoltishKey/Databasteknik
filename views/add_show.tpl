@@ -50,8 +50,24 @@
 
                     <div class="form-inline" id="slut_tid">
                         <label for="spel-start-tid"></label>
-                        <input type="input" class="form-control"  placeholder="Timmar" name="slut_tid_timmar">
-                        <input type="input" class="form-control"  placeholder="Minuter" name="slut_tid_minuter">
+                        <select class="form-control" name="slut_tid_timmar">
+                            <option>Timmar</option>
+                            <option>0</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
+                        <select class="form-control" name="slut_tid_minuter">
+                            <option>Minuter</option>
+                            <option>00</option>
+                            <option>10</option>
+                            <option>20</option>
+                            <option>30</option>
+                            <option>40</option>
+                            <option>50</option>
+                        </select>
                     </div>
                 </div>
 

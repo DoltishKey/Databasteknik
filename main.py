@@ -237,7 +237,6 @@ def new_show_post():
 		cursor=call_database()
 		vilket_band=request.forms.get('band_name')
 		vilken_scen=request.forms.get('stage_name')
-
 		vilken_dag=request.forms.get('play_day')
 		start_tid=request.forms.get('start_tid')
 		slut_tid_timmar=request.forms.get('slut_tid_timmar')
@@ -250,6 +249,11 @@ def new_show_post():
 		sql_scen_id="SELECT id FROM scen WHERE namn='%s'" %(vilken_scen)
 		cursor.execute(sql_scen_id)
 		scen_id=cursor.fetchall()
+
+		if slut_tid_timmar=="Timmar":
+			slut_tid_timmar="0"
+		if slut_tid_minuter=="Minuter":
+			slut_tid_minuter="00"
 
 		the_day=0
 		if vilken_dag== "Dag 1":
