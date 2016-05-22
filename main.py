@@ -3,10 +3,15 @@ import bottle
 from bottle import route, get, post, run, template, error, static_file, request, redirect, abort, response, app
 import MySQLdb
 import json
+from time import time, strptime
+from datetime import datetime, timedelta
+from operator import itemgetter
 
 db = None
 cursor = None
 
+
+'''*******Callable functions*******'''
 def call_database():
 	global db
 	global cursor
@@ -18,39 +23,73 @@ def hang_up_on_database():
     global db
     db = db.close()
 
-
-@route('/')
-def index():
-	cursor=call_database()
-	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
-		DATE_FORMAT(spelar.slut_tid, '%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
+def do_spelschema(cursor):
+	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%Y-%m-%d') DATEONLY,\
+		DATE_FORMAT(spelar.slut_tid, '%Y-%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
 		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn as scenNamn  FROM spelar\
 			JOIN scen\
 				ON scen.id=spelar.scen_id\
 			JOIN band\
 				ON band.id=spelar.band_id"
 	cursor.execute(sql_spelschema)
-	spelschema=cursor.fetchall()
+	return cursor.fetchall()
 
+def get_bands(cursor):
+	sql_band="SELECT * FROM band"
+	cursor.execute(sql_band)
+	return cursor.fetchall()
+
+def get_scener(cursor):
+	sql_scen="SELECT * FROM scen"
+	cursor.execute(sql_scen)
+	return cursor.fetchall()
+
+def get_bandinfo(cursor, bandid):
+	sql_bandinfo="SELECT band.namn, band.stil, band.ursprungland FROM band WHERE band.id='%d'" %(bandid)
+	cursor.execute(sql_bandinfo)
+	return cursor.fetchall()
+
+def get_artists(cursor, bandid):
+	sql_artister="SELECT artist.* FROM artist\
+					join spelar_i\
+					on artist.id=spelar_i.artist_id\
+					WHERE spelar_i.band_id='%d'" %(bandid)
+	cursor.execute(sql_artister)
+	return cursor.fetchall()
+
+
+'''********Routes******'''
+@route('/')
+def index():
+	cursor=call_database()
+	spelschema=do_spelschema(cursor)
 	hang_up_on_database()
-	return template('index', pageTitle='Start', spelschema=spelschema)
+
+	day1=[]
+	day2=[]
+	day3=[]
+	for spelning in spelschema:
+		if spelning[4]=='2016-06-10':
+			day1.append(spelning)
+		elif spelning[4]=='2016-06-11':
+			day2.append(spelning)
+		elif spelning[4]=='2016-06-12':
+			day3.append(spelning)
+
+	day1=sorted(day1, key=itemgetter(6))
+	day2=sorted(day2, key=itemgetter(6))
+	day3=sorted(day3, key=itemgetter(6))
+	return template('index', pageTitle='Start', day1=day1, day2=day2, day3=day3)
+
 
 @route('/bandinfo/<nr>')
 def bandinfo(nr):
 	nr=int(nr)
+
 	cursor=call_database()
-	sql_bandinfo="SELECT band.namn, band.stil, band.ursprungland FROM band WHERE band.id='%d'" %(nr)
-	cursor.execute(sql_bandinfo)
-	bandinfo=cursor.fetchall()
-
-	sql_artister="SELECT artist.* FROM artist\
-					join spelar_i\
-					on artist.id=spelar_i.artist_id\
-					WHERE spelar_i.band_id='%d'" %(nr)
-	cursor.execute(sql_artister)
-	artister=cursor.fetchall()
+	bandinfo=get_bandinfo(cursor, nr)
+	artister=get_artists(cursor, nr)
 	hang_up_on_database()
-
 	return template('bandinfo', pageTitle="bandinfo", bandinfo=bandinfo, artister=artister)
 
 
@@ -167,40 +206,42 @@ def security():
 def security_search():
 	return template('security_search', pageTitle='Säkerhetsansvarig')
 
+
 @route('/add_play')
 def new_show():
-	cursor=call_database()
-
-	sql_band="SELECT * FROM band"
-	cursor.execute(sql_band)
-	bands=cursor.fetchall()
-
-	sql_scen="SELECT * FROM scen"
-	cursor.execute(sql_scen)
-	scener=cursor.fetchall()
-
-	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%m-%d') DATEONLY,\
-		DATE_FORMAT(spelar.slut_tid, '%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
-		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn as scenNamn  FROM spelar\
-			JOIN scen\
-				ON scen.id=spelar.scen_id\
-			JOIN band\
-				ON band.id=spelar.band_id"
-	cursor.execute(sql_spelschema)
-	spelschema=cursor.fetchall()
-
+	cursor = call_database()
+	bands = get_bands(cursor)
+	scener = get_scener(cursor)
+	spelschema = do_spelschema(cursor)
 	hang_up_on_database()
-	return template('add_show', pageTitle='Lägg till spelning', bands=bands, scener=scener, spelschema=spelschema)
+
+	day1=[]
+	day2=[]
+	day3=[]
+	for spelning in spelschema:
+		if spelning[4]=='2016-06-10':
+			day1.append(spelning)
+		elif spelning[4]=='2016-06-11':
+			day2.append(spelning)
+		elif spelning[4]=='2016-06-12':
+			day3.append(spelning)
+
+	day1=sorted(day1, key=itemgetter(6))
+	day2=sorted(day2, key=itemgetter(6))
+	day3=sorted(day3, key=itemgetter(6))
+	return template('add_show', pageTitle='Lägg till spelning', bands=bands, scener=scener, day1=day1, day2=day2, day3=day3)
 
 
 @route('/add_play', method="POST")
 def new_show_post():
-
 		cursor=call_database()
 		vilket_band=request.forms.get('band_name')
 		vilken_scen=request.forms.get('stage_name')
+
+		vilken_dag=request.forms.get('play_day')
 		start_tid=request.forms.get('start_tid')
-		slut_tid=request.forms.get('slut_tid')
+		slut_tid_timmar=request.forms.get('slut_tid_timmar')
+		slut_tid_minuter=request.forms.get('slut_tid_minuter')
 
 		sql_band_id="SELECT id FROM band WHERE namn='%s'" %(vilket_band)
 		cursor.execute(sql_band_id)
@@ -210,8 +251,29 @@ def new_show_post():
 		cursor.execute(sql_scen_id)
 		scen_id=cursor.fetchall()
 
+		the_day=0
+		if vilken_dag== "Dag 1":
+			the_day='2016-06-10'
+		elif vilken_dag== "Dag 2":
+			the_day='2016-06-11'
+		elif vilken_dag== "Dag 3":
+			the_day= '2016-06-12'
+		else:
+			redirect('/add_play')
+
+		the_day=datetime.strptime(the_day, '%Y-%m-%d')
+		start_tid=datetime.strptime(start_tid, '%H:%M')
+		slut_tid_timmar=int(slut_tid_timmar)
+		slut_tid_minuter=int(slut_tid_minuter)
+
+		show_start=datetime.combine(datetime.date(the_day), datetime.time(start_tid))
+		show_end=show_start + timedelta(hours=slut_tid_timmar, minutes=slut_tid_minuter)
+
+		print show_start
+		print show_end
+
 		sql="INSERT INTO spelar(Start_tid, Slut_tid, Scen_id, Band_id) VALUES(%s, %s, %s, %s)"
-		cursor.execute(sql, (start_tid, slut_tid, scen_id, band_id,))
+		cursor.execute(sql, (show_start, show_end, scen_id, band_id,))
 		db.commit()
 		hang_up_on_database()
 		redirect('/add_play')
