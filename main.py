@@ -505,6 +505,32 @@ def update_contact(band_id):
 	hang_up_on_database()
 	redirect('/contact_by_band')
 
+@route('/contact_staff')
+def contact_staff():
+	cursor = call_database()
+	sql = "SELECT band.id, band.Namn, COUNT(artist.Namn), kontakt.Pers_nr \
+	FROM ((spelar_i JOIN band ON Band_id = band.id) \
+	JOIN artist ON Artist_id = artist.id) \
+		JOIN kontakt \
+		ON kontakt.band_id = band.id \
+	GROUP BY band.id"
+	cursor.execute(sql)
+	bands = cursor.fetchall()
+
+	sql = "SELECT personal.namn , kontakt.Pers_nr, COUNT(artist.Namn) \
+	FROM((\
+				(spelar_i JOIN band ON Band_id = band.id) \
+			JOIN artist ON Artist_id = artist.id) \
+		JOIN kontakt ON kontakt.band_id = band.id) \
+	JOIN personal ON personal.Pers_nr = kontakt.Pers_nr \
+	GROUP BY kontakt.Pers_nr"
+	cursor.execute(sql)
+	staff = cursor.fetchall()
+
+	hang_up_on_database()
+	return template('contact_staff', pageTitle="Kontaktpersoner", staff = staff, bands=bands)
+
+
 
 @route('/remove_contact/<band_id>', method="POST")
 def remove_contact(band_id):
@@ -522,11 +548,11 @@ def remove_contact(band_id):
 
 @error(404)
 def error404(error):
-    return template('pagenotfound', pageTitle = 'Fel!' )
+	return template('pagenotfound', pageTitle = 'Fel!' )
 
 @route('/static/<filename:path>')
 def server_static(filename):
-    return static_file(filename, root="static")
+	return static_file(filename, root="static")
 
 
 run(host='localhost', port = 8080)

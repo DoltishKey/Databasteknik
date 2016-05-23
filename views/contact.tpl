@@ -10,7 +10,7 @@
                     <ul class="nav nav-tabs nav-justified">
                          <li role="navigation" class="active"><a href="/contact">Saknar kontaktperson</a></li>
                          <li role="navigation"><a href="/contact_by_band">Kontaktpersoner för band</a></li>
-                         <li role="navigation"><a href="#">Schema säkerhetsansvarig</a></li>
+                         <li role="navigation"><a href="/contact_staff">Kontaktpersoner</a></li>
                     </ul>
 
                     <table class="table">

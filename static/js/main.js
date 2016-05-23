@@ -110,6 +110,10 @@ $(document).ready(function () {
         $(this).popover('toggle');
     });
 
+    $('.contacts_bands').hide()
+    $('.contact_persons_band').click(function() {
+        $(this).find('.contacts_bands').toggle()
+    })
 
 
 });
