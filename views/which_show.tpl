@@ -33,47 +33,124 @@
                 </div>
             </div>
             <div class="row col-md-3">
+
                 <h3>Ändra spelning</h3>
-                <div class="form-inline" id="start_tid">
-                    <label for="spel-start-tid"></label>
-                    <input type="input" class="form-control" placeholder="Start-datum och tid" name="start_tid" value="{{show_info[0][4]}}">
+                <div class="form-inline" id="day_to_play">
+                    <select class="form-control" name="play_day">
+                        %if show_info[0][4][0:10]=='2016-06-10':
+                            <option selected>Dag 1</option>
+                            <option>Dag 2</option>
+                            <option>Dag 3</option>
+                        %elif show_info[0][4][0:10]=='2016-06-11':
+                            <option>Dag 1</option>
+                            <option selected>Dag 2</option>
+                            <option>Dag 3</option>
+                        %elif show_info[0][4][0:10]=='2016-06-12':
+                            <option>Dag 1</option>
+                            <option>Dag 2</option>
+                            <option selected>Dag 3</option>
+                        %end
+                    </select>
+                        <input type="input" class="form-control" placeholder="Starttid" name="start_tid" maxlength="5" value="{{show_info[0][4][11:]}}">
+                    <h3> Speltid: </h3>
+
+                    <div class="form-inline" id="slut_tid">
+                        <label for="spel-start-tid"></label>
+                        <select class="form-control" name="slut_tid_timmar">
+                            <option>Timmar</option>
+                            <option>0</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
+                        <select class="form-control" name="slut_tid_minuter">
+                            <option>Minuter</option>
+                            <option>00</option>
+                            <option>10</option>
+                            <option>20</option>
+                            <option>30</option>
+                            <option>40</option>
+                            <option>50</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-inline" id="slut_tid">
-                    <label for="spel-start-tid"></label>
-                    <input type="input" class="form-control"  placeholder="Slut-datum och tid" name="slut_tid" value="{{show_info[0][5]}}">
-                </div>
-                <div class="form-inline" id="change_del_show">
+
+                <div class="form-inline" id="boka_spelning">
+                    <label for="boka_spelning"></label>
                     <button type="submit" class="btn btn-default" id="do_booking">Boka</button>
                 </div>
             </div>
         </form>
         <div class="table-responsive" id="spelschema">
-            <div class="col-md-12">
-                <!-- Sortera efter scen och dag -->
+            <div class="col-md-8 col-md-offset-2">
+                <!-- For each in (tuple med band sorterat per dag) -->
                 <h1>Dag 1 </h1>
-                <table class="table">
-                    <tr>
-                        <th>Band</th>
-                        <th>Start-tid</th>
-                        <th>Slut-tid</th>
-                        <th>Scen</th>
-                    </tr>
-                    %for each in spelschema:
+                %if len(day1)>0:
+                    <table class="table">
                         <tr>
-                            <td>{{each[1]}}</td>
-                            <td>{{each[6]}}</td>
-                            <td>{{each[7]}}</td>
-                            <td>{{each[8]}}</td>
+                            <th>Band</th>
+                            <th>Start-tid</th>
+                            <th>Slut-tid</th>
+                            <th>Scen</th>
                         </tr>
-                    %end
-                </table>
+                        %for each_play in day1:
+                            <tr>
+                                <td>{{each_play[1]}}</td>
+                                <td>{{each_play[6]}}</td>
+                                <td>{{each_play[7]}}</td>
+                                <td>{{each_play[8]}}</td>
+                            </tr>
+                        %end
+                    </table>
+                %else:
+                    <h3 class="text-center"> Inga bokade spelningar </h3>
+                %end
+                    <h1>Dag 2 </h1>
+                %if len(day2)>0:
+                    <table class="table">
+                        <tr>
+                            <th>Band</th>
+                            <th>Start-tid</th>
+                            <th>Slut-tid</th>
+                            <th>Scen</th>
+                        </tr>
+                        %for each_play in day2:
+                            <tr>
+                                <td>{{each_play[1]}}</td>
+                                <td>{{each_play[6]}}</td>
+                                <td>{{each_play[7]}}</td>
+                                <td>{{each_play[8]}}</td>
+                            </tr>
+                        %end
+                    </table>
+                %else:
+                    <h3 class="text-center"> Inga bokade spelningar </h3>
+                %end
+                <h1>Dag 3 </h1>
+                %if len(day3)>0:
+                    <table class="table">
+                        <tr>
+                            <th>Band</th>
+                            <th>Start-tid</th>
+                            <th>Slut-tid</th>
+                            <th>Scen</th>
+                        </tr>
+                        %for each_play in day3:
+                            <tr>
+                                <td>{{each_play[1]}}</td>
+                                <td>{{each_play[6]}}</td>
+                                <td>{{each_play[7]}}</td>
+                                <td>{{each_play[8]}}</td>
+                            </tr>
+                        %end
+                    </table>
+                %else:
+                    <h3 class="text-center"> Inga bokade spelningar </h3>
+                %end
             </div>
         </div>
-        </div>
-        <footer class="col-md-12 text-center">
-            <hr>
-            <h4>Blomstermåla Rockfestival AB</h2>
-        </footer>
         %include('footer.tpl')
     </body>
 </html>

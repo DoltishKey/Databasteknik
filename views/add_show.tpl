@@ -44,8 +44,7 @@
                         <option>Dag 2</option>
                         <option>Dag 3</option>
                     </select>
-                    <input type="input" class="form-control" placeholder="Starttid" name="start_tid">
-
+                        <input type="input" class="form-control" placeholder="Starttid" maxlength="5" name="start_tid">
                     <h3> Speltid: </h3>
 
                     <div class="form-inline" id="slut_tid">

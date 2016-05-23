@@ -42,12 +42,15 @@ def testingTime():
 	else:
 		redirect('/add_play')
 
-	print the_day
+
 	the_day=datetime.strptime(the_day, '%Y-%m-%d')
-	print the_day
 
 	print start_tid
-	start_tid=datetime.strptime(start_tid, '%H:%M')
+	#start_tid=datetime.strptime(start_tid, "").time()
+	#print start_tid
+	start_tid=datetime.strptime(start_tid, '%Y-%m-%d %H:%M')
+
+
 	print start_tid
 
 	d=datetime.combine(datetime.date(the_day), datetime.time(start_tid))

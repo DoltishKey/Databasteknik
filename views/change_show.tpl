@@ -18,28 +18,86 @@
                 <div class="col-md-8 col-md-offset-2">
                     <!-- Sortera efter scen och dag -->
                     <h1>Dag 1 </h1>
-                    <table class="table">
-                        <tr>
-                            <th>Band</th>
-                            <th>Start-tid</th>
-                            <th>Slut-tid</th>
-                            <th>Scen</th>
-                        </tr>
-                        %for each in spelschema:
+                    %if len(day1)>0:
+                        <table class="table">
                             <tr>
-                                <td>{{each[1]}}</td>
-                                <td>{{each[6]}}</td>
-                                <td>{{each[7]}}</td>
-                                <td>{{each[8]}}</td>
-                                <form method="GET" action="/edith_play/{{each[0]}}">
-                                    <td><button type="submit" class="btn btn-default">ändra</button><td>
-                                </form>
-                                <form method="POST" action="/edith_play/{{each[0]}}/{{each[9]}}/del">
-                                    <td><button type="submit" class="btn btn-default">ta bort</button><td>
-                                </form>
+                                <th>Band</th>
+                                <th>Start-tid</th>
+                                <th>Slut-tid</th>
+                                <th>Scen</th>
                             </tr>
-                        %end
-                    </table>
+                            %for each_play in day1:
+                                <tr>
+                                    <td>{{each_play[1]}}</td>
+                                    <td>{{each_play[6]}}</td>
+                                    <td>{{each_play[7]}}</td>
+                                    <td>{{each_play[8]}}</td>
+                                    <form method="GET" action="/edith_play/{{each_play[0]}}">
+                                        <td><button type="submit" class="btn btn-default">ändra</button><td>
+                                    </form>
+                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/del">
+                                        <td><button type="submit" class="btn btn-default">ta bort</button><td>
+                                    </form>
+                                </tr>
+                            %end
+                        </table>
+                    %else:
+                     <h3 class="text-center"> Inga bokade spelningar </h3>
+                    %end
+                    <h1>Dag 2 </h1>
+                    %if len(day2)>0:
+                        <table class="table">
+                            <tr>
+                                <th>Band</th>
+                                <th>Start-tid</th>
+                                <th>Slut-tid</th>
+                                <th>Scen</th>
+                            </tr>
+                            %for each_play in day2:
+                                <tr>
+                                    <td>{{each_play[1]}}</td>
+                                    <td>{{each_play[6]}}</td>
+                                    <td>{{each_play[7]}}</td>
+                                    <td>{{each_play[8]}}</td>
+                                    <form method="GET" action="/edith_play/{{each_play[0]}}">
+                                        <td><button type="submit" class="btn btn-default">ändra</button><td>
+                                    </form>
+                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/del">
+                                        <td><button type="submit" class="btn btn-default">ta bort</button><td>
+                                    </form>
+                                </tr>
+                            %end
+                        </table>
+                    %else:
+                     <h3 class="text-center"> Inga bokade spelningar </h3>
+                    %end
+                    <h1>Dag 3 </h1>
+                    %if len(day3)>0:
+                        <table class="table">
+                            <tr>
+                                <th>Band</th>
+                                <th>Start-tid</th>
+                                <th>Slut-tid</th>
+                                <th>Scen</th>
+                            </tr>
+                            %for each_play in day3:
+                                <tr>
+                                    <td>{{each_play[1]}}</td>
+                                    <td>{{each_play[6]}}</td>
+                                    <td>{{each_play[7]}}</td>
+                                    <td>{{each_play[8]}}</td>
+                                    <form method="GET" action="/edith_play/{{each_play[0]}}">
+                                        <td><button type="submit" class="btn btn-default">ändra</button><td>
+                                    </form>
+                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/del">
+                                        <td><button type="submit" class="btn btn-default">ta bort</button><td>
+                                    </form>
+                                </tr>
+                            %end
+                        </table>
+                    %else:
+                     <h3 class="text-center"> Inga bokade spelningar </h3>
+                    %end
                 </div>
             </div>
         </div>
