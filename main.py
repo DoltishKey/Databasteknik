@@ -223,7 +223,6 @@ def security():
 def security_search():
 	return template('security_search', pageTitle='Säkerhetsansvarig')
 
-
 @route('/add_play')
 def new_show():
 	cursor = call_database()
@@ -298,8 +297,8 @@ def new_show_post():
 		sql_check_show="SELECT * FROM spelar\
 						where scen_id=%s AND (%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
 						OR\
-						(start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
-		cursor.execute(sql_check_show, (scen_id, show_start, show_end, show_start, show_end, show_start, show_end,))
+						scen_id=%s AND (start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
+		cursor.execute(sql_check_show, (scen_id, show_start, show_end, scen_id, show_start, show_end, show_start, show_end,))
 		checked_show=cursor.rowcount
 
 		if checked_show>0:
@@ -310,6 +309,7 @@ def new_show_post():
 		db.commit()
 		hang_up_on_database()
 		redirect('/add_play')
+
 
 @route('/edith_play')
 def edit__what_show():
@@ -406,7 +406,6 @@ def update_shows(band, scen):
 					OR\
 					scen_id=%s AND band_id!=%s AND (start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
 	cursor.execute(sql_check_show, (scen_id, band_id, show_start, show_end, scen_id, band_id, show_start, show_end, show_start, show_end,))
-	what_shows=cursor.fetchall()
 	checked_show=cursor.rowcount
 
 	if checked_show>0:
@@ -424,9 +423,7 @@ def delete_show(band, scen, time):
 	cursor=call_database()
 	band=int(band)
 	scen=int(scen)
-
 	time=datetime.strptime(time, "%Y-%m-%d %H:%M")
-	print time
 
 	sql_del_show="DELETE FROM spelar WHERE spelar.Scen_id=%s AND spelar.Band_id=%s AND spelar.Start_tid=%s"
 	cursor.execute(sql_del_show,(scen, band, time))
