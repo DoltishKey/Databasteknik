@@ -20,7 +20,7 @@
                 </div>
                 <div class="form-group">
                     <label for="vilken_scen">Vilken scen</label>
-                        <select class="form-control" name="stage_name">
+                        <select class="form-control" name="stage_name" required>
                             <option></option>
                             %for scen in scener:
                                 %if scen[0]==show_info[0][6]:
@@ -36,7 +36,7 @@
 
                 <h3>Ändra spelning</h3>
                 <div class="form-inline" id="day_to_play">
-                    <select class="form-control" name="play_day">
+                    <select class="form-control" name="play_day" required>
                         %if show_info[0][4][0:10]=='2016-06-10':
                             <option selected>Dag 1</option>
                             <option>Dag 2</option>
@@ -51,12 +51,47 @@
                             <option selected>Dag 3</option>
                         %end
                     </select>
-                        <input type="input" class="form-control" placeholder="Starttid" name="start_tid" maxlength="5" value="{{show_info[0][4][11:]}}">
+                    <p> <em>Starttid:</em></p>
+                    <select class="form-control" name="start_tid_timmar" required>
+                        %for i in xrange(24):
+                            %if len(str(i))==1:
+                                %if show_info[0][4][11:13]=="0"+str(i):
+                                    <option selected>{{"0"+str(i)}}</option>
+                                %else:
+                                    <option>{{"0"+str(i)}}</option>
+                                %end
+                            %else:
+                                %if show_info[0][4][11:13]==str(i):
+                                    <option selected>{{str(i)}}</option>
+                                %else:
+                                    <option>{{str(i)}}</option>
+                                %end
+                            %end
+                        %end
+                    </select>
+                    :
+                    <select class="form-control" name="start_tid_minuter" required>
+                        %for i in xrange(0, 60, 10):
+                            %if len(str(i))==1:
+                                %if show_info[0][4][14:16]=="0"+str(i):
+                                    <option selected>{{"0"+str(i)}}</option>
+                                %else:
+                                    <option>{{str(i)}}</option>
+                                %end
+                            %else:
+                                %if show_info[0][4][14:16]==str(i):
+                                    <option selected>{{str(i)}}</option>
+                                %else:
+                                    <option>{{str(i)}}</option>
+                                %end
+                            %end
+                        %end
+                    </select>
                     <h3> Speltid: </h3>
 
                     <div class="form-inline" id="slut_tid">
                         <label for="spel-start-tid"></label>
-                        <select class="form-control" name="slut_tid_timmar">
+                        <select class="form-control" name="slut_tid_timmar" required>
                             <option>Timmar</option>
                             <option>0</option>
                             <option>1</option>
@@ -65,7 +100,7 @@
                             <option>4</option>
                             <option>5</option>
                         </select>
-                        <select class="form-control" name="slut_tid_minuter">
+                        <select class="form-control" name="slut_tid_minuter" required>
                             <option>Minuter</option>
                             <option>00</option>
                             <option>10</option>

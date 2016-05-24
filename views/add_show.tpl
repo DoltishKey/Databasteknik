@@ -44,9 +44,26 @@
                         <option>Dag 2</option>
                         <option>Dag 3</option>
                     </select>
-                        <input type="input" class="form-control" placeholder="Starttid" maxlength="5" name="start_tid">
-                    <h3> Speltid: </h3>
-
+                        <p> <em>Starttid:</em></p>
+                        <select class="form-control" name="start_tid_timmar">
+                            %for i in xrange(24):
+                        		%if len(str(i))==1:
+                        			<option>{{"0"+str(i)}}</option>
+                        		%else:
+                        			<option>{{str(i)}}</option>
+                                %end
+                            %end
+                        </select>
+                        :
+                        <select class="form-control" name="start_tid_minuter">
+                            <option>00</option>
+                            <option>10</option>
+                            <option>20</option>
+                            <option>30</option>
+                            <option>40</option>
+                            <option>50</option>
+                        </select>
+                        <h3> Speltid: </h3>
                     <div class="form-inline" id="slut_tid">
                         <label for="spel-start-tid"></label>
                         <select class="form-control" name="slut_tid_timmar">
