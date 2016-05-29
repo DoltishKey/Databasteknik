@@ -54,8 +54,8 @@ def get_bandinfo(cursor, bandid):
 
 def get_artists(cursor, bandid):
 	sql_artister="SELECT artist.* FROM artist\
-					join spelar_i\
-					on artist.id=spelar_i.artist_id\
+					JOIN spelar_i\
+						ON artist.id=spelar_i.artist_id\
 					WHERE spelar_i.band_id='%d'" %(bandid)
 	cursor.execute(sql_artister)
 	return cursor.fetchall()
@@ -70,7 +70,7 @@ def get_show_info(cursor, band_id):
 					JOIN band\
 						ON band.id=spelar.band_id\
 					WHERE band.id=%s"
-	cursor.execute(sql_show_info,(band_id,))
+	cursor.execute(sql_show_info, (band_id,))
 	return cursor.fetchall()
 
 
@@ -80,7 +80,6 @@ def index():
 	cursor=call_database()
 	spelschema=get_spelschema(cursor)
 	hang_up_on_database()
-	print spelschema
 
 	day1=[]
 	day2=[]
@@ -295,9 +294,9 @@ def new_show_post():
 		scen_id=cursor.fetchall()
 
 		sql_check_show="SELECT * FROM spelar\
-						where scen_id=%s AND (%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
+						WHERE scen_id=%s AND (%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
 						OR\
-						scen_id=%s AND (start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
+						scen_id=%s AND (Start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
 		cursor.execute(sql_check_show, (scen_id, show_start, show_end, scen_id, show_start, show_end, show_start, show_end,))
 		checked_show=cursor.rowcount
 
