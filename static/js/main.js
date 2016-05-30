@@ -42,7 +42,7 @@ $(document).ready(function () {
     });
 
     $('.list-group').on('keyup', '.pers_nr', function(){
-        if ($(this).val().length > 8){
+        if ($(this).val().length > 5){
             var this_item = $(this);
             num = this_item.parents('.artist').data('nr')
             $.ajax({

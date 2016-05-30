@@ -7,22 +7,21 @@
         <div class="container-fluid ">
             <div class="row">
                 <div class="col-md-8 col-md-offset-2">
-                    <h1>Kontaktperson</h1>
+                    <h1>Säkerhetsansvar</h1>
                     <ul class="nav nav-tabs nav-justified">
-                         <li role="navigation"><a href="/contact">Saknar kontaktperson</a></li>
-                         <li role="navigation"><a href="/contact_by_band">Kontaktpersoner för band</a></li>
-                         <li role="navigation" class="active"><a href="/contact_staff">Kontaktpersoner</a></li>
+                         <li role="navigation"><a href="/security">Säkerhetsansvar fattas</a></li>
+                         <li role="navigation"><a href="/security_search">Scenschema säkerhetsansvar</a></li>
+                         <li role="navigation" class="active"><a href="/schedule_security">Schema säkerhetsansvarig</a></li>
                     </ul>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-8 col-md-offset-2">
                     <ul class="list-group">
-                        %for person in staff:
-                            %tot_artist = 0
+
                             <li class="list-group-item contact_persons_band col-md-12">
-                                <p class="col-md-3">{{person[0]}}</p>
-                                <p class="col-md-3">Ansvarar för: {{person[2]}} artister</p>
+                                <p class="col-md-3"></p>
+                                <p class="col-md-3">Ansvarar för: artister</p>
                                 <button type="button" class="btn btn-primary how_contact_bands">+</button>
                                 </p>
 
@@ -32,18 +31,11 @@
                                             <th>Band</th>
                                             <th>Antal medlemmar</th>
                                         </tr>
-                                        %for band in bands:
-                                            %if person[1] == band[3]:
-                                                <tr>
-                                                    <td>{{band[1]}}</td>
-                                                    <td>{{band[2]}}</td>
-                                                </tr>
-                                            %end
-                                        %end
+
                                     </table>
                                 </div>
                             </li>
-                        %end
+
                     </ul>
                 </div>
             </div>

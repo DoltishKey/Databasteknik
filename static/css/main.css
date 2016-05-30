@@ -24,3 +24,9 @@
     border:2px solid;
     margin:6px;
 }
+
+.how_contact_bands{
+    float: right;
+    margin-right: 150px;
+    border-radius: 50%;
+}

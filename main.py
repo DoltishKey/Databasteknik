@@ -214,12 +214,96 @@ def remove_staff(pers_nr):
 
 @route('/security')
 def security():
-	return template('security', pageTitle='Säkerhetsansvarig')
+	cursor = call_database()
+	global db
+	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
+	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+	scen on scenId = id \
+	ORDER BY scen.Namn DESC, sakerhetsansvarig.starttid"
+	cursor.execute(sql)
+	security = cursor.fetchall()
+
+	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
+	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+	scen on scenId = id \
+	UNION ALL \
+	SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet FROM personal \
+	LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
+	WHERE kontakt.Pers_nr Is Null"
+	cursor.execute(sql)
+	staff_members = cursor.fetchall()
+
+	sql="SELECT * FROM scen"
+	cursor.execute(sql)
+	scens = cursor.fetchall()
+
+	days = ['2016-10-10', '2016-10-11', '2016-10-12']
+	times = ['00:00:00', '04:00:00', '08:00:00', '12:00:00', '16:00:00', '20:00:00']
+	hang_up_on_database()
+
+	return template('security', pageTitle='Säkerhetsansvarig', security = security, staff_members=staff_members, scens = scens, days = days, times = times)
+
+@route('/assign_security', method="POST")
+def assign_security():
+	time = datetime.strptime(request.forms.get('starttime'), '%Y-%m-%d %H:%M:%S')
+	scen = int(request.forms.get('scen'))
+	staff = int(request.forms.get('new_person'))
+	global db
+	cursor = call_database()
+	print time
+	print scen
+	print staff
+	sql="INSERT INTO sakerhetsansvarig(starttid, persId, scenId) \
+	VALUES(%s, \
+	(SELECT Pers_nr FROM personal WHERE Pers_nr = %s),\
+	(SELECT id FROM scen WHERE id = %s))"
+	cursor.execute(sql, (time, staff, scen,))
+	db.commit()
+	hang_up_on_database()
+	redirect('/security')
+
+@route('/update_security/<scen>', method="POST")
+def update_security(scen):
+	cursor = call_database()
+	global db
+	starttime = datetime.strptime(request.forms.get('starttime'), '%Y-%m-%d %H:%M:%S')
+	scen = int(scen)
+	new_person = int(request.forms.get('new_person'))
+	sql="UPDATE sakerhetsansvarig SET persId = %s \
+	WHERE starttid = %s AND scenId = %s"
+	cursor.execute(sql, (new_person, starttime, scen,))
+	db.commit()
+	hang_up_on_database()
+	redirect('/security_search')
+
 
 @route('/security_search')
 def security_search():
-	return template('security_search', pageTitle='Säkerhetsansvarig')
+	cursor = call_database()
+	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
+	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+	scen on scenId = id \
+	ORDER BY scen.Namn DESC, sakerhetsansvarig.starttid"
+	cursor.execute(sql)
+	security = cursor.fetchall()
 
+	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
+	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+	scen on scenId = id \
+	UNION ALL \
+	SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet FROM personal \
+	LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
+	WHERE kontakt.Pers_nr Is Null"
+	cursor.execute(sql)
+	staff_members = cursor.fetchall()
+	hang_up_on_database()
+
+
+	return template('security_search', pageTitle='Säkerhetsansvarig',security = security, staff_members = staff_members )
+
+@route('/schedule_security')
+def schedule_security():
+	return template('schedule_security',  pageTitle='Schema säkerhetsansvarig')
 
 @route('/add_play')
 def new_show():
@@ -435,8 +519,8 @@ def contact():
 	SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
 	(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
 	RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
-	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.Pers_nr \
-	WHERE sakerhetsansvarig.Pers_nr Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
+	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.PersId \
+	WHERE sakerhetsansvarig.PersId Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
 	LEFT JOIN spelar_i \
 	ON J5.band_id = spelar_i.Band_id) as J10 \
 	GROUP BY J10.Pers_nr"
@@ -482,8 +566,8 @@ def contact_by_band():
 	SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
 	(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
 	RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
-	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.Pers_nr \
-	WHERE sakerhetsansvarig.Pers_nr Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
+	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.PersId \
+	WHERE sakerhetsansvarig.PersId Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
 	LEFT JOIN spelar_i \
 	ON J5.band_id = spelar_i.Band_id) as J10 \
 	GROUP BY J10.Pers_nr"

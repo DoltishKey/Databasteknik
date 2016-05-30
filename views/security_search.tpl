@@ -5,13 +5,12 @@
     <body>
         %include('nav.tpl')
         <div class="container-fluid ">
-            <div class="row">
                 <div class="col-md-8 col-md-offset-2">
                     <h1>Säkerhetsansvar</h1>
                     <ul class="nav nav-tabs nav-justified">
                          <li role="navigation"><a href="/security">Säkerhetsansvar fattas</a></li>
                          <li role="navigation" class="active"><a href="/security_search">Scenschema säkerhetsansvar</a></li>
-                         <li role="navigation"><a href="#">Schema säkerhetsansvarig</a></li>
+                         <li role="navigation"><a href="/schedule_security">Schema säkerhetsansvarig</a></li>
                     </ul>
                     <div class="row">
                         <h4>Se säkhetsansvariga på:</h4>
@@ -48,69 +47,47 @@
                                 <th>Startid</th>
                                 <th>Slutid</th>
                                 <th>Säkerhetsansvarig</th>
-                                <th></th>
+                                <th>Byt ansvarig till / erfarenhet</th>
                                 <th></th>
 
                             </tr>
-                            <tr>
-                                <td>Diseltältet</td>
-                                <td>Lördag</td>
-                                <td>12.00</td>
-                                <td>16.00</td>
-                                <td>
-                                    <p class="selected_staff_securoty">Kalle <button type="button" class="btn btn-default get_security_info" data-container="body" data-toggle="popover" data-placement="right" data-html="true" data-content="Persnr: 1998.01.12  <br />Tele:040-13371">Info</button></p>
-                                    <from class="change_staff_security">
-                                        <select class="form-control">
-                                            <option>Kalle</option>
-                                            <option>Nisse</option>
-                                            <option>Pelle</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td><button type="button" class="btn btn-primary change_security">Byt ansvarig</button></td>
-                                <td><button type="button" class="btn btn-danger remove_security">Ta bort</button></td>
-                            </tr>
-                            <tr>
-                                <td>Diseltältet</td>
-                                <td>Lördag</td>
-                                <td>08.00</td>
-                                <td>12.00</td>
-                                <td>
-                                    <p class="selected_staff_securoty">Nisse <button type="button" class="btn btn-default get_security_info">Info</button></p>
-                                    <from class="change_staff_security">
-                                        <select class="form-control">
-                                            <option>Kalle</option>
-                                            <option>Nisse</option>
-                                            <option>Pelle</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td><button type="button" class="btn btn-primary change_security">Byt ansvarig</button></td>
-                                <td><button type="button" class="btn btn-danger remove_security">Ta bort</button></td>
-                            </tr>
-                            <tr>
-                                <td>Diseltältet</td>
-                                <td>Söndag</td>
-                                <td>08.00</td>
-                                <td>12.00</td>
-                                <td>
-                                    <p class="selected_staff_securoty">Pelle <button type="button" class="btn btn-default get_security_info">Info</button></p>
-                                    <from class="change_staff_security">
-                                        <select class="form-control">
-                                            <option>Kalle</option>
-                                            <option>Nisse</option>
-                                            <option>Pelle</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td><button type="button" class="btn btn-primary change_security">Byt ansvarig</button></td>
-                                <td><button type="button" class="btn btn-danger remove_security">Ta bort</button></td>
-                            </tr>
+                            %from datetime import datetime, timedelta
+                            %for staff in security:
+                                <tr>
+                                    <td>{{staff[2]}}</td>
+                                    <td>{{staff[4].date()}}</td>
+                                    <td>{{(staff[4].time()).hour}}:00</td>
+                                    <td>{{(staff[4] + timedelta(hours = 4)).hour}}:00</td>
+                                    <td>{{staff[0]}} <button type="button" class="btn btn-default get_security_info" data-container="body" data-toggle="popover" data-placement="right" data-html="true" data-content="Persnr: {{staff[1]}}">Info</button></td>
+                                    <td>
+                                        <form class="form-inline" action="/update_security/{{staff[3]}}" method="post">
+                                            <input type="hidden" value="{{staff[4]}}" name="starttime">
+                                            <select class="form-control from-inline" name="new_person">
+                                                %members= []
+                                                %for person in staff_members:
+                                                    %if person[1] == staff[1] and person[4] == staff[4]:
+                                                        %members.append(person[1])
+                                                        <option value="{{person[1]}}" selected="selected">{{person[0]}}, {{person[5]}} år</option>
+                                                    %elif person[4] == staff[4]:
+                                                        %members.append(person[1])
+                                                    %end
+                                                %end
+                                                %for person in staff_members:
+                                                    %if person[1] not in members and person[4] != staff[4]:
+                                                        %members.append(person[1])
+                                                        <option value="{{person[1]}}">{{person[0]}}, {{person[5]}} år</option>
+                                                    %end
+                                                %end
+                                            </select>
+                                            <button type="submit" class="btn btn-success assign_security">Tilldela</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            %end
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>        
+        </div>
         %include('footer.tpl')
     </body>
 </html>
