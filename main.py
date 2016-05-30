@@ -5,7 +5,6 @@ import MySQLdb
 import json
 from time import time, strptime
 from datetime import datetime, timedelta, time
-from operator import itemgetter
 
 db = None
 cursor = None
@@ -268,9 +267,10 @@ def security():
 	cursor.execute(sql)
 	staff_members = cursor.fetchall()
 
-	sql="SELECT * FROM scen"
-	cursor.execute(sql)
-	scens = cursor.fetchall()
+	#sql="SELECT * FROM scen"
+	#cursor.execute(sql)
+	scens = get_scener(cursor)
+	#cursor.fetchall()
 
 	days = ['2016-10-10', '2016-10-11', '2016-10-12']
 	times = ['00:00:00', '04:00:00', '08:00:00', '12:00:00', '16:00:00', '20:00:00']
@@ -289,9 +289,9 @@ def assign_security():
 	print scen
 	print staff
 	sql="INSERT INTO sakerhetsansvarig(starttid, persId, scenId) \
-	VALUES(%s, \
-	(SELECT Pers_nr FROM personal WHERE Pers_nr = %s),\
-	(SELECT id FROM scen WHERE id = %s))"
+		VALUES(%s, \
+		(SELECT Pers_nr FROM personal WHERE Pers_nr = %s),\
+		(SELECT id FROM scen WHERE id = %s))"
 	cursor.execute(sql, (time, staff, scen,))
 	db.commit()
 	hang_up_on_database()
@@ -305,7 +305,7 @@ def update_security(scen):
 	scen = int(scen)
 	new_person = int(request.forms.get('new_person'))
 	sql="UPDATE sakerhetsansvarig SET persId = %s \
-	WHERE starttid = %s AND scenId = %s"
+		WHERE starttid = %s AND scenId = %s"
 	cursor.execute(sql, (new_person, starttime, scen,))
 	db.commit()
 	hang_up_on_database()
@@ -316,26 +316,23 @@ def update_security(scen):
 def security_search():
 	cursor = call_database()
 	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
-	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
-	scen on scenId = id \
-	ORDER BY scen.Namn DESC, sakerhetsansvarig.starttid"
+			FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+			scen on scenId = id \
+			ORDER BY scen.Namn DESC, sakerhetsansvarig.starttid"
 	cursor.execute(sql)
 	security = cursor.fetchall()
 
 	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
-	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
-	scen on scenId = id \
-	UNION ALL \
-	SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet FROM personal \
-	LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
-	WHERE kontakt.Pers_nr Is Null"
+			FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+			scen on scenId = id \
+			UNION ALL \
+			SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet FROM personal \
+			LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
+			WHERE kontakt.Pers_nr Is Null"
 	cursor.execute(sql)
 	staff_members = cursor.fetchall()
 	hang_up_on_database()
-
-
 	return template('security_search', pageTitle='Säkerhetsansvarig',security = security, staff_members = staff_members )
-
 
 @route('/schedule_security')
 def schedule_security():
@@ -348,7 +345,6 @@ def schedule_security():
 
 
 	return template('schedule_security',  pageTitle='Schema säkerhetsansvarig', security = result)
-
 
 @route('/add_play')
 def new_show():
@@ -364,7 +360,6 @@ def new_show():
 	day2=day1_day2_day3[1]
 	day3=day1_day2_day3[2]
 	return template('add_show', pageTitle='Lägg till spelning', bands=bands, scener=scener, day1=day1, day2=day2, day3=day3)
-
 
 @route('/add_play', method="POST")
 def new_show_post():
@@ -410,6 +405,7 @@ def new_show_post():
 		cursor.execute(sql_scen_id, (vilken_scen,))
 		scen_id=cursor.fetchall()
 
+		#Följade sql ska få ut de alla andra band som medlemmarna i ett specifik band är medlem i
 		sql_under_construction="SELECT h1.artist_id, spelar_i.band_id FROM (SELECT artist_id FROM spelar_i WHERE band_id=12) AS h1\
 								RIGHT JOIN spelar_i\
 									ON h1.artist_id=spelar_i.artist_id\
@@ -553,14 +549,14 @@ def contact():
 	result = cursor.fetchall()
 
 	sql = "SELECT J10.Pers_nr, J10.Namn, COUNT(J10.Artist_id) FROM( \
-	SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
-	(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
-	RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
-	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.PersId \
-	WHERE sakerhetsansvarig.PersId Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
-	LEFT JOIN spelar_i \
-	ON J5.band_id = spelar_i.Band_id) as J10 \
-	GROUP BY J10.Pers_nr"
+			SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
+				(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
+					RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
+					LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.PersId \
+					WHERE sakerhetsansvarig.PersId Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
+			LEFT JOIN spelar_i \
+			ON J5.band_id = spelar_i.Band_id) as J10 \
+			GROUP BY J10.Pers_nr"
 	cursor.execute(sql)
 	candidates = cursor.fetchall()
 
@@ -600,14 +596,14 @@ def contact_by_band():
 	band_info = cursor.fetchall()
 
 	sql = "SELECT J10.Pers_nr, J10.Namn, COUNT(J10.Artist_id) FROM( \
-	SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
-	(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
-	RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
-	LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.PersId \
-	WHERE sakerhetsansvarig.PersId Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
-	LEFT JOIN spelar_i \
-	ON J5.band_id = spelar_i.Band_id) as J10 \
-	GROUP BY J10.Pers_nr"
+				SELECT Artist_id, J5.Pers_nr, J5.Namn FROM \
+					(SELECT kontakt.band_id, J1.Pers_nr, J1.Namn FROM kontakt \
+					RIGHT OUTER JOIN (SELECT personal.Pers_nr, personal.Namn FROM personal \
+						LEFT JOIN sakerhetsansvarig ON personal.Pers_nr = sakerhetsansvarig.PersId \
+					WHERE sakerhetsansvarig.PersId Is Null) as J1 ON kontakt.Pers_nr = J1.Pers_nr) as J5 \
+				LEFT JOIN spelar_i \
+				ON J5.band_id = spelar_i.Band_id) as J10 \
+			GROUP BY J10.Pers_nr"
 	cursor.execute(sql)
 	candidates = cursor.fetchall()
 
