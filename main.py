@@ -106,7 +106,33 @@ def bandinfo(nr):
 	bandinfo=get_bandinfo(cursor, nr)
 	artister=get_artists(cursor, nr)
 	hang_up_on_database()
+
 	return template('bandinfo', pageTitle="bandinfo", bandinfo=bandinfo, artister=artister)
+
+@route('/bandinfo/<nr>/schema')
+def band_schema(nr):
+	nr=int(nr)
+
+	cursor=call_database()
+	spelschema=get_show_info(cursor, nr)
+	hang_up_on_database()
+
+	day1=[]
+	day2=[]
+	day3=[]
+	for spelning in spelschema:
+		if spelning[4][0:10]=='2016-06-10':
+			day1.append(spelning)
+		elif spelning[4][0:10]=='2016-06-11':
+			day2.append(spelning)
+		elif spelning[4][0:10]=='2016-06-12':
+			day3.append(spelning)
+
+	day1=sorted(day1, key=itemgetter(4))
+	day2=sorted(day2, key=itemgetter(4))
+	day3=sorted(day3, key=itemgetter(4))
+
+	return template('showsheet', pageTitle='bandschema', day1=day1, day2=day2, day3=day3, spelschema=spelschema)
 
 
 @route('/book_band')
@@ -294,14 +320,14 @@ def new_show_post():
 		scen_id=cursor.fetchall()
 
 		sql_check_show="SELECT * FROM spelar\
-						WHERE scen_id=%s AND (%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
+						WHERE (scen_id=%s OR band_id=%s) AND ((%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
 						OR\
-						scen_id=%s AND (Start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
-		cursor.execute(sql_check_show, (scen_id, show_start, show_end, scen_id, show_start, show_end, show_start, show_end,))
+						(Start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s))"
+		cursor.execute(sql_check_show, (scen_id, band_id, show_start, show_end, show_start, show_end, show_start, show_end,))
 		checked_show=cursor.rowcount
 
 		if checked_show>0:
-			return "Kolla schemat igen! Finns redan en spelning på den tiden"
+			return "Kolla schemat igen! Antingen har bandet redan en spelning den tiden, eller så spelar ett annat band på den scenen, den tidpunkten!"
 
 		sql="INSERT INTO spelar(Start_tid, Slut_tid, Scen_id, Band_id) VALUES(%s, %s, %s, %s)"
 		cursor.execute(sql, (show_start, show_end, scen_id, band_id,))
@@ -401,10 +427,9 @@ def update_shows(band, scen):
 	scen_id=cursor.fetchall()
 
 	sql_check_show="SELECT * FROM spelar\
-					where scen_id=%s AND band_id!=%s AND (%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
-					OR\
-					scen_id=%s AND band_id!=%s AND (start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
-	cursor.execute(sql_check_show, (scen_id, band_id, show_start, show_end, scen_id, band_id, show_start, show_end, show_start, show_end,))
+					where scen_id=%s AND band_id!=%s AND ((%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
+					OR (start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s))"
+	cursor.execute(sql_check_show, (scen_id, band_id, show_start, show_end, show_start, show_end, show_start, show_end,))
 	checked_show=cursor.rowcount
 
 	if checked_show>0:

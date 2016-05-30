@@ -6,7 +6,7 @@
 
         <div class="container">
             <div class="row text-center">
-                <h1> Blomstermåla RockFestival</h1>
+                <h1> Spelschema för {{spelschema[0][1]}}</h1>
             </div>
         </div>
         <div class="table-responsive" id="spelschema">
@@ -24,16 +24,12 @@
                         %for each_play in day1:
                             <tr>
                                 <td>{{each_play[1]}}</td>
+                                <td>{{each_play[4][11:]}}</td>
+                                <td>{{each_play[5][11:]}}</td>
                                 <td>{{each_play[6]}}</td>
-                                <td>{{each_play[7]}}</td>
-                                <td>{{each_play[8]}}</td>
                                 <td><a href="/bandinfo/{{each_play[0]}}"><button type="button" class="btn btn-default"
                                 data-container="body" data-toggle="popover" data-placement="right"
                                 data-html="true">Info
-                            </button></a></td>
-                                <td><a href="/bandinfo/{{each_play[0]}}/schema"><button type="button" class="btn btn-default"
-                                data-container="body" data-toggle="popover" data-placement="right"
-                                data-html="true">Schema
                             </button></a></td>
                             </tr>
                         %end
@@ -53,17 +49,13 @@
                         %for each_play in day2:
                             <tr>
                                 <td>{{each_play[1]}}</td>
+                                <td>{{each_play[4][11:]}}</td>
+                                <td>{{each_play[5][11:]}}</td>
                                 <td>{{each_play[6]}}</td>
-                                <td>{{each_play[7]}}</td>
-                                <td>{{each_play[8]}}</td>
                                 <td><a href="/bandinfo/{{each_play[0]}}"><button type="button" class="btn btn-default"
                                 data-container="body" data-toggle="popover" data-placement="right"
                                 data-html="true">Info
                             </button></a></td>
-                                <td><a href="/bandinfo/{{each_play[0]}}/schema"><button type="button" class="btn btn-default"
-                                data-container="body" data-toggle="popover" data-placement="right"
-                                data-html="true">Schema
-                                </button></a></td>
                             </tr>
                         %end
                     </table>
@@ -82,16 +74,12 @@
                         %for each_play in day3:
                             <tr>
                                 <td>{{each_play[1]}}</td>
+                                <td>{{each_play[4][11:]}}</td>
+                                <td>{{each_play[5][11:]}}</td>
                                 <td>{{each_play[6]}}</td>
-                                <td>{{each_play[7]}}</td>
-                                <td>{{each_play[8]}}</td>
                                 <td><a href="/bandinfo/{{each_play[0]}}"><button type="button" class="btn btn-default"
                                 data-container="body" data-toggle="popover" data-placement="right"
                                 data-html="true">Info
-                            </button></a></td>
-                                <td><a href="/bandinfo/{{each_play[0]}}/schema"><button type="button" class="btn btn-default"
-                                data-container="body" data-toggle="popover" data-placement="right"
-                                data-html="true">Schema
                             </button></a></td>
                             </tr>
                         %end
