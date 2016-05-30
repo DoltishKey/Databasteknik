@@ -18,7 +18,7 @@
             <div class="more_info new_show">
                 <div class="form-group">
                     <label for="bandnamn">Band</label>
-                    <select class="form-control" name="band_name">
+                    <select class="form-control" name="band_name" required>
                         <option></option>
                         %for band in bands:
                             <option>{{band[1]}}</option>
@@ -27,7 +27,7 @@
                 </div>
                 <div class="form-group">
                     <label for="vilken_scen">Vilken scen</label>
-                        <select class="form-control" name="stage_name">
+                        <select class="form-control" name="stage_name" required>
                             <option></option>
                             %for scen in scener:
                                 <option>{{scen[0]}}</option>
@@ -44,12 +44,29 @@
                         <option>Dag 2</option>
                         <option>Dag 3</option>
                     </select>
-                        <input type="input" class="form-control" placeholder="Starttid" maxlength="5" name="start_tid">
-                    <h3> Speltid: </h3>
-
+                        <p> <em>Starttid:</em></p>
+                        <select class="form-control" name="start_tid_timmar" required>
+                            %for i in xrange(24):
+                        		%if len(str(i))==1:
+                        			<option>{{"0"+str(i)}}</option>
+                        		%else:
+                        			<option>{{str(i)}}</option>
+                                %end
+                            %end
+                        </select>
+                        :
+                        <select class="form-control" name="start_tid_minuter" required>
+                            <option>00</option>
+                            <option>10</option>
+                            <option>20</option>
+                            <option>30</option>
+                            <option>40</option>
+                            <option>50</option>
+                        </select>
+                        <h3> Speltid: </h3>
                     <div class="form-inline" id="slut_tid">
                         <label for="spel-start-tid"></label>
-                        <select class="form-control" name="slut_tid_timmar">
+                        <select class="form-control" name="slut_tid_timmar" required>
                             <option>Timmar</option>
                             <option>0</option>
                             <option>1</option>
@@ -58,7 +75,7 @@
                             <option>4</option>
                             <option>5</option>
                         </select>
-                        <select class="form-control" name="slut_tid_minuter">
+                        <select class="form-control" name="slut_tid_minuter" required>
                             <option>Minuter</option>
                             <option>00</option>
                             <option>10</option>

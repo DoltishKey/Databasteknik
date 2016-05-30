@@ -14,19 +14,19 @@
                                 <div class="more_info new_band">
                                     <div class="form-group">
                                         <label for="bandnamn">Bandnamn</label>
-                                        <input type="input" class="form-control" id="bandnamn" name="bandnamn" placeholder="Bandnamn">
+                                        <input type="input" class="form-control" id="bandnamn" name="bandnamn" placeholder="Bandnamn" required>
                                     </div>
                                     <div class="form-group">
                                         <label for="land">Ursprungsland</label>
-                                        <input type="input" class="form-control" id="land" name="land" placeholder="Ursprungsland">
+                                        <input type="input" class="form-control" id="land" name="land" placeholder="Ursprungsland" required>
                                     </div>
                                     <div class="form-group">
                                         <label for="loge">Loge</label>
-                                        <input type="input" class="form-control" id="loge" name="loge" placeholder="Loge">
+                                        <input type="input" class="form-control" id="loge" name="loge" placeholder="Loge" required>
                                     </div>
                                     <div class="form-group">
                                         <label for="stil">Stil</label>
-                                        <select class="form-control" id="stil" name="stil">
+                                        <select class="form-control" id="stil" name="stil" required>
                                             <option>Pop</option>
                                             <option>Rock</option>
                                             <option>Dansband</option>
@@ -41,23 +41,23 @@
                             <div class="more_info new_artist">
                                 <div class="form-group">
                                     <label for="artist-namn">Namn</label>
-                                    <input type="input" class="form-control artist_name-1" id="artist-namn" name="artist-namn" placeholder="Namn">
+                                    <input type="input" class="form-control artist_name-1" id="artist-namn" name="artist-namn" placeholder="Namn" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="pers_nr">Personnummer</label>
-                                    <input type="input" class="form-control pers_nr" id="pers_nr" name="pers_nr" placeholder="Personnummer">
+                                    <input type="input" class="form-control pers_nr" id="pers_nr" name="pers_nr" placeholder="Personnummer" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="artist-tele">Tele</label>
-                                    <input type="input" class="form-control artist-tele-1" id="artist-tele" name="artist-tele" placeholder="Tele">
+                                    <input type="input" class="form-control artist-tele-1" id="artist-tele" name="artist-tele" placeholder="Tele" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="artist-important">Viktig info</label>
-                                    <textarea class="form-control artist-important-1" rows="3" id="artist-important" name="artist-important" placeholder="Kul info"></textarea>
+                                    <textarea class="form-control artist-important-1" rows="3" id="artist-important" name="artist-important" placeholder="Viktigt info" required></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label for="artist-kul">Kul info</label>
-                                    <textarea class="form-control artist-kul-1" rows="3" id="artist-kul" name="artist-kul" placeholder="Kul info"></textarea>
+                                    <textarea class="form-control artist-kul-1" rows="3" id="artist-kul" name="artist-kul" placeholder="Kul info" required></textarea>
                                 </div>
                             </div>
                         </li>

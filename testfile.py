@@ -11,6 +11,13 @@ from operator import itemgetter
 db = None
 cursor = None
 
+def testloop():
+	for i in xrange(0, 60, 10):
+		print i
+
+
+
+
 def call_database():
 	global db
 	global cursor
@@ -92,5 +99,4 @@ def testingcase():
 	print sorted(day2, key=itemgetter(4))
 	print sorted(day3, key=itemgetter(4))
 
-
-testingTime()
+testloop()

@@ -24,13 +24,17 @@ def hang_up_on_database():
     db = db.close()
 
 def get_spelschema(cursor):
-	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland, DATE_FORMAT(spelar.start_tid, '%Y-%m-%d') DATEONLY,\
-		DATE_FORMAT(spelar.slut_tid, '%Y-%m-%d') DATEONLY, DATE_FORMAT(spelar.start_tid, '%H:%i') TIMEONLY,\
-		DATE_FORMAT(spelar.slut_tid, '%H:%i') TIMEONLY, scen.namn, scen.id  FROM spelar\
-			JOIN scen\
-				ON scen.id=spelar.scen_id\
-			JOIN band\
-				ON band.id=spelar.band_id"
+	sql_spelschema="SELECT band.id, band.namn, band.stil, band.ursprungland,\
+					DATE_FORMAT(spelar.start_tid, '%Y-%m-%d') start_datum,\
+					DATE_FORMAT(spelar.slut_tid, '%Y-%m-%d') slut_datum,\
+					DATE_FORMAT(spelar.start_tid, '%H:%i') start_tid,\
+					DATE_FORMAT(spelar.slut_tid, '%H:%i') slut_tid,\
+					scen.namn, scen.id  FROM spelar\
+					JOIN scen\
+						ON scen.id=spelar.scen_id\
+					JOIN band\
+						ON band.id=spelar.band_id\
+					ORDER BY start_datum ASC, start_tid ASC"
 	cursor.execute(sql_spelschema)
 	return cursor.fetchall()
 
@@ -45,16 +49,16 @@ def get_scener(cursor):
 	return cursor.fetchall()
 
 def get_bandinfo(cursor, bandid):
-	sql_bandinfo="SELECT band.namn, band.stil, band.ursprungland FROM band WHERE band.id='%d'" %(bandid)
-	cursor.execute(sql_bandinfo)
+	sql_bandinfo="SELECT band.namn, band.stil, band.ursprungland FROM band WHERE band.id=%s"
+	cursor.execute(sql_bandinfo, (bandid,))
 	return cursor.fetchall()
 
 def get_artists(cursor, bandid):
 	sql_artister="SELECT artist.* FROM artist\
-					join spelar_i\
-					on artist.id=spelar_i.artist_id\
-					WHERE spelar_i.band_id='%d'" %(bandid)
-	cursor.execute(sql_artister)
+					JOIN spelar_i\
+						ON artist.id=spelar_i.artist_id\
+					WHERE spelar_i.band_id=%s"
+	cursor.execute(sql_artister, (bandid,))
 	return cursor.fetchall()
 
 def get_show_info(cursor, band_id):
@@ -66,19 +70,13 @@ def get_show_info(cursor, band_id):
 						ON scen.id=spelar.scen_id\
 					JOIN band\
 						ON band.id=spelar.band_id\
-					WHERE band.id=%s"
-	cursor.execute(sql_show_info,(band_id,))
+					WHERE band.id=%s\
+					ORDER BY start_tid ASC"
+	cursor.execute(sql_show_info, (band_id,))
 	return cursor.fetchall()
 
 
-'''********Routes******'''
-@route('/')
-def index():
-	cursor=call_database()
-	spelschema=get_spelschema(cursor)
-	hang_up_on_database()
-	print spelschema
-
+def show_on_which_day(spelschema):
 	day1=[]
 	day2=[]
 	day3=[]
@@ -90,9 +88,24 @@ def index():
 		elif spelning[4]=='2016-06-12':
 			day3.append(spelning)
 
-	day1=sorted(day1, key=itemgetter(6))
-	day2=sorted(day2, key=itemgetter(6))
-	day3=sorted(day3, key=itemgetter(6))
+	shows_sorted =[]
+	shows_sorted.append(day1)
+	shows_sorted.append(day2)
+	shows_sorted.append(day3)
+	return shows_sorted
+
+'''********Routes******'''
+@route('/')
+def index():
+	cursor=call_database()
+	spelschema=get_spelschema(cursor)
+	hang_up_on_database()
+
+	day1_day2_day3=show_on_which_day(spelschema)
+
+	day1=day1_day2_day3[0]
+	day2=day1_day2_day3[1]
+	day3=day1_day2_day3[2]
 	return template('index', pageTitle='Start', day1=day1, day2=day2, day3=day3)
 
 
@@ -104,7 +117,29 @@ def bandinfo(nr):
 	bandinfo=get_bandinfo(cursor, nr)
 	artister=get_artists(cursor, nr)
 	hang_up_on_database()
+
 	return template('bandinfo', pageTitle="bandinfo", bandinfo=bandinfo, artister=artister)
+
+@route('/bandinfo/<nr>/schema')
+def band_schema(nr):
+	nr=int(nr)
+
+	cursor=call_database()
+	spelschema=get_show_info(cursor, nr)
+	hang_up_on_database()
+
+	day1=[]
+	day2=[]
+	day3=[]
+	for spelning in spelschema:
+		if spelning[4][0:10]=='2016-06-10':
+			day1.append(spelning)
+		elif spelning[4][0:10]=='2016-06-11':
+			day2.append(spelning)
+		elif spelning[4][0:10]=='2016-06-12':
+			day3.append(spelning)
+
+	return template('showsheet', pageTitle='bandschema', day1=day1, day2=day2, day3=day3, spelschema=spelschema)
 
 
 @route('/book_band')
@@ -301,9 +336,11 @@ def security_search():
 
 	return template('security_search', pageTitle='Säkerhetsansvarig',security = security, staff_members = staff_members )
 
+
 @route('/schedule_security')
 def schedule_security():
 	return template('schedule_security',  pageTitle='Schema säkerhetsansvarig')
+
 
 @route('/add_play')
 def new_show():
@@ -313,20 +350,11 @@ def new_show():
 	spelschema = get_spelschema(cursor)
 	hang_up_on_database()
 
-	day1=[]
-	day2=[]
-	day3=[]
-	for spelning in spelschema:
-		if spelning[4]=='2016-06-10':
-			day1.append(spelning)
-		elif spelning[4]=='2016-06-11':
-			day2.append(spelning)
-		elif spelning[4]=='2016-06-12':
-			day3.append(spelning)
+	day1_day2_day3=show_on_which_day(spelschema)
 
-	day1=sorted(day1, key=itemgetter(6))
-	day2=sorted(day2, key=itemgetter(6))
-	day3=sorted(day3, key=itemgetter(6))
+	day1=day1_day2_day3[0]
+	day2=day1_day2_day3[1]
+	day3=day1_day2_day3[2]
 	return template('add_show', pageTitle='Lägg till spelning', bands=bands, scener=scener, day1=day1, day2=day2, day3=day3)
 
 
@@ -335,9 +363,12 @@ def new_show_post():
 		vilket_band=request.forms.get('band_name')
 		vilken_scen=request.forms.get('stage_name')
 		vilken_dag=request.forms.get('play_day')
-		start_tid=request.forms.get('start_tid')
+		start_tid_timmar=request.forms.get('start_tid_timmar')
+		start_tid_minuter=request.forms.get('start_tid_minuter')
 		slut_tid_timmar=request.forms.get('slut_tid_timmar')
 		slut_tid_minuter=request.forms.get('slut_tid_minuter')
+
+		start_tid=str(start_tid_timmar)+":"+str(start_tid_minuter)
 
 		the_day=0
 		if vilken_dag== "Dag 1":
@@ -363,27 +394,24 @@ def new_show_post():
 		show_end=show_start + timedelta(hours=slut_tid_timmar, minutes=slut_tid_minuter)
 
 		cursor=call_database()
-		spelschema=get_spelschema(cursor)
-
-
-
-		sql_band_id="SELECT id FROM band WHERE namn='%s'" %(vilket_band)
-		cursor.execute(sql_band_id)
+		sql_band_id="SELECT id FROM band WHERE namn=%s"
+		cursor.execute(sql_band_id, (vilket_band,))
 		band_id=cursor.fetchall()
 
-		sql_scen_id="SELECT id FROM scen WHERE namn='%s'" %(vilken_scen)
-		cursor.execute(sql_scen_id)
+		sql_scen_id="SELECT id FROM scen WHERE namn=%s"
+		cursor.execute(sql_scen_id, (vilken_scen,))
 		scen_id=cursor.fetchall()
 
 		sql_check_show="SELECT * FROM spelar\
-						where scen_id=%s AND (%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
+						WHERE (scen_id=%s OR band_id=%s) AND ((%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
 						OR\
-						(start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s)"
-		cursor.execute(sql_check_show,(scen_id, show_start, show_end, show_start, show_end, show_start, show_end,))
+						(Start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s))"
+		cursor.execute(sql_check_show, (scen_id, band_id, show_start, show_end, show_start, show_end, show_start, show_end,))
 		checked_show=cursor.rowcount
 
 		if checked_show>0:
-			return "Kolla schemat igen! Finns redan en spelning på den tiden"
+			hang_up_on_database()
+			return "Kolla schemat igen! Antingen har bandet redan en spelning den tiden, eller så spelar ett annat band på den scenen, den tidpunkten!"
 
 		sql="INSERT INTO spelar(Start_tid, Slut_tid, Scen_id, Band_id) VALUES(%s, %s, %s, %s)"
 		cursor.execute(sql, (show_start, show_end, scen_id, band_id,))
@@ -391,26 +419,18 @@ def new_show_post():
 		hang_up_on_database()
 		redirect('/add_play')
 
+
 @route('/edith_play')
 def edit__what_show():
 	cursor=call_database()
 	spelschema=get_spelschema(cursor)
 	hang_up_on_database()
 
-	day1=[]
-	day2=[]
-	day3=[]
-	for spelning in spelschema:
-		if spelning[4]=='2016-06-10':
-			day1.append(spelning)
-		elif spelning[4]=='2016-06-11':
-			day2.append(spelning)
-		elif spelning[4]=='2016-06-12':
-			day3.append(spelning)
+	day1_day2_day3=show_on_which_day(spelschema)
 
-	day1=sorted(day1, key=itemgetter(6))
-	day2=sorted(day2, key=itemgetter(6))
-	day3=sorted(day3, key=itemgetter(6))
+	day1=day1_day2_day3[0]
+	day2=day1_day2_day3[1]
+	day3=day1_day2_day3[2]
 	return template('change_show', pageTitle='Spelning', day1=day1, day2=day2, day3=day3)
 
 
@@ -423,20 +443,11 @@ def edit_show(nr):
 	spelschema=get_spelschema(cursor)
 	hang_up_on_database()
 
-	day1=[]
-	day2=[]
-	day3=[]
-	for spelning in spelschema:
-		if spelning[4]=='2016-06-10':
-			day1.append(spelning)
-		elif spelning[4]=='2016-06-11':
-			day2.append(spelning)
-		elif spelning[4]=='2016-06-12':
-			day3.append(spelning)
+	day1_day2_day3=show_on_which_day(spelschema)
 
-	day1=sorted(day1, key=itemgetter(6))
-	day2=sorted(day2, key=itemgetter(6))
-	day3=sorted(day3, key=itemgetter(6))
+	day1=day1_day2_day3[0]
+	day2=day1_day2_day3[1]
+	day3=day1_day2_day3[2]
 	return template('which_show', pageTitle="", show_info=show_info, scener=scener, day1=day1, day2=day2, day3=day3)
 
 
@@ -446,9 +457,11 @@ def update_shows(band, scen):
 	scen=int(scen)
 	vilken_scen=request.forms.get('stage_name')
 	vilken_dag=request.forms.get('play_day')
-	start_tid=request.forms.get('start_tid')
+	start_tid_timmar=request.forms.get('start_tid_timmar')
+	start_tid_minuter=request.forms.get('start_tid_minuter')
 	slut_tid_timmar=request.forms.get('slut_tid_timmar')
 	slut_tid_minuter=request.forms.get('slut_tid_minuter')
+	start_tid=str(start_tid_timmar)+":"+str(start_tid_minuter)
 
 	the_day=0
 	if vilken_dag== "Dag 1":
@@ -479,20 +492,31 @@ def update_shows(band, scen):
 	cursor.execute(sql_scen_id, (vilken_scen,))
 	scen_id=cursor.fetchall()
 
+	sql_check_show="SELECT * FROM spelar\
+					WHERE scen_id=%s AND band_id!=%s AND ((%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
+					OR (start_tid BETWEEN %s AND %s OR Slut_tid BETWEEN %s AND %s))"
+	cursor.execute(sql_check_show, (scen_id, band_id, show_start, show_end, show_start, show_end, show_start, show_end,))
+	checked_show=cursor.rowcount
+
+	if checked_show>0:
+		hang_up_on_database()
+		return "Kolla schemat igen! Finns redan en spelning på den tiden"
+
 	sql_changed="UPDATE spelar SET Start_tid=%s, Slut_tid=%s, Scen_id=%s WHERE spelar.Band_id=%s AND spelar.Scen_id=%s"
 	cursor.execute(sql_changed, (show_start, show_end, scen_id, band_id, scen,))
 	db.commit()
 	hang_up_on_database()
 	redirect('/edith_play')
 
-@route('/edith_play/<band>/<scen>/del', method="POST")
-def delete_show(band, scen):
+@route('/edith_play/<band>/<scen>/<time>/del', method="POST")
+def delete_show(band, scen, time):
 	cursor=call_database()
 	band=int(band)
 	scen=int(scen)
+	time=datetime.strptime(time, "%Y-%m-%d %H:%M")
 
-	sql_del_show="DELETE FROM spelar WHERE spelar.Scen_id=%s AND spelar.Band_id=%s"
-	cursor.execute(sql_del_show,(scen, band,))
+	sql_del_show="DELETE FROM spelar WHERE spelar.Scen_id=%s AND spelar.Band_id=%s AND spelar.Start_tid=%s"
+	cursor.execute(sql_del_show,(scen, band, time))
 	db.commit()
 	hang_up_on_database()
 	redirect('/edith_play')

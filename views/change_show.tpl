@@ -35,7 +35,7 @@
                                     <form method="GET" action="/edith_play/{{each_play[0]}}">
                                         <td><button type="submit" class="btn btn-default">ändra</button><td>
                                     </form>
-                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/del">
+                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/{{each_play[4]+ " " + each_play[6]}}/del">
                                         <td><button type="submit" class="btn btn-default">ta bort</button><td>
                                     </form>
                                 </tr>
@@ -62,7 +62,7 @@
                                     <form method="GET" action="/edith_play/{{each_play[0]}}">
                                         <td><button type="submit" class="btn btn-default">ändra</button><td>
                                     </form>
-                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/del">
+                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/{{each_play[4]+ " " + each_play[6]}}/del">
                                         <td><button type="submit" class="btn btn-default">ta bort</button><td>
                                     </form>
                                 </tr>
@@ -89,7 +89,7 @@
                                     <form method="GET" action="/edith_play/{{each_play[0]}}">
                                         <td><button type="submit" class="btn btn-default">ändra</button><td>
                                     </form>
-                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/del">
+                                    <form method="POST" action="/edith_play/{{each_play[0]}}/{{each_play[9]}}/{{each_play[4]+ " " + each_play[6]}}/del">
                                         <td><button type="submit" class="btn btn-default">ta bort</button><td>
                                     </form>
                                 </tr>
