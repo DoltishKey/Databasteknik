@@ -402,6 +402,11 @@ def new_show_post():
 		cursor.execute(sql_scen_id, (vilken_scen,))
 		scen_id=cursor.fetchall()
 
+		sql_under_construction="SELECT h1.artist_id, spelar_i.band_id FROM (SELECT artist_id FROM spelar_i WHERE band_id=12) AS h1\
+								RIGHT JOIN spelar_i\
+									ON h1.artist_id=spelar_i.artist_id\
+								WHERE spelar_i.band_id!=12"
+
 		sql_check_show="SELECT * FROM spelar\
 						WHERE (scen_id=%s OR band_id=%s) AND ((%s BETWEEN Start_tid AND Slut_tid OR %s BETWEEN Start_tid AND Slut_tid)\
 						OR\
