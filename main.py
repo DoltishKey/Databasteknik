@@ -339,7 +339,15 @@ def security_search():
 
 @route('/schedule_security')
 def schedule_security():
-	return template('schedule_security',  pageTitle='Schema säkerhetsansvarig')
+	cursor= call_database()
+	sql="SELECT scen.namn, starttid, personal.namn, personal.Pers_nr\
+	FROM sakerhetsansvarig JOIN scen ON id = scenId \
+	JOIN personal on persID = Pers_nr"
+	cursor.execute(sql)
+	result = cursor.fetchall()
+
+
+	return template('schedule_security',  pageTitle='Schema säkerhetsansvarig', security = result)
 
 
 @route('/add_play')
