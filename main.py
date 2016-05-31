@@ -160,7 +160,6 @@ def do_band_booking():
 	artist_fun_info = request.POST.getall('artist-kul')
 
 	try:
-		global db
 		sql = "INSERT INTO band(Namn, Stil, Ursprungland, Loge) VALUES (%s, %s, %s, %s)"
 		cursor.execute(sql, (bandnamn, stil, land, loge,))
 		band_id = cursor.lastrowid
@@ -188,7 +187,6 @@ def do_band_booking():
 @route('/ajax_new_artist/<nr>', method="POST")
 def ajax_new_artist(nr):
 	cursor = call_database()
-	get_num = int(nr) -1
 	pers_nr = request.forms.get('pers_nr')
 	sql = "SELECT * FROM artist WHERE Pers_nr = %s"
 	cursor.execute(sql, (pers_nr,))
@@ -249,28 +247,26 @@ def remove_staff(pers_nr):
 @route('/security')
 def security():
 	cursor = call_database()
-	global db
 	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
-	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
-	scen on scenId = id \
+		FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) \
+		JOIN scen on scenId = id \
 	ORDER BY scen.Namn DESC, sakerhetsansvarig.starttid"
 	cursor.execute(sql)
 	security = cursor.fetchall()
 
 	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
-	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
-	scen on scenId = id \
+	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) \
+		JOIN scen on scenId = id \
 	UNION ALL \
-	SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet FROM personal \
-	LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
-	WHERE kontakt.Pers_nr Is Null"
+		SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet \
+		FROM personal \
+		LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
+		WHERE kontakt.Pers_nr Is Null"
 	cursor.execute(sql)
 	staff_members = cursor.fetchall()
 
-	#sql="SELECT * FROM scen"
-	#cursor.execute(sql)
 	scens = get_scener(cursor)
-	#cursor.fetchall()
+
 
 	days = ['2016-10-10', '2016-10-11', '2016-10-12']
 	times = ['00:00:00', '04:00:00', '08:00:00', '12:00:00', '16:00:00', '20:00:00']
@@ -283,15 +279,9 @@ def assign_security():
 	time = datetime.strptime(request.forms.get('starttime'), '%Y-%m-%d %H:%M:%S')
 	scen = int(request.forms.get('scen'))
 	staff = int(request.forms.get('new_person'))
-	global db
 	cursor = call_database()
-	print time
-	print scen
-	print staff
 	sql="INSERT INTO sakerhetsansvarig(starttid, persId, scenId) \
-		VALUES(%s, \
-		(SELECT Pers_nr FROM personal WHERE Pers_nr = %s),\
-		(SELECT id FROM scen WHERE id = %s))"
+		VALUES(%s, %s, %s)"
 	cursor.execute(sql, (time, staff, scen,))
 	db.commit()
 	hang_up_on_database()
@@ -300,7 +290,6 @@ def assign_security():
 @route('/update_security/<scen>', method="POST")
 def update_security(scen):
 	cursor = call_database()
-	global db
 	starttime = datetime.strptime(request.forms.get('starttime'), '%Y-%m-%d %H:%M:%S')
 	scen = int(scen)
 	new_person = int(request.forms.get('new_person'))
@@ -404,6 +393,7 @@ def new_show_post():
 		sql_scen_id="SELECT id FROM scen WHERE namn=%s"
 		cursor.execute(sql_scen_id, (vilken_scen,))
 		scen_id=cursor.fetchall()
+
 
 		#Följade sql ska få ut de alla andra band som medlemmarna i ett specifik band är medlem i
 		sql_under_construction="SELECT h1.artist_id, spelar_i.band_id FROM (SELECT artist_id FROM spelar_i WHERE band_id=12) AS h1\
@@ -569,7 +559,7 @@ def do_assign_contact(band_id):
 	global db
 	kontaktperson=int(request.forms.get('selected_candidate'))
 	band_id = int(band_id)
-	sql="INSERT INTO kontakt(Pers_nr, Band_id) VALUES( (SELECT Pers_nr FROM personal WHERE Pers_nr = %s), (SELECT id FROM band WHERE id = %s) )"
+	sql="INSERT INTO kontakt(Pers_nr, Band_id) VALUES( %s, %s)"
 	cursor.execute(sql, (kontaktperson, band_id,))
 	db.commit()
 	hang_up_on_database()
