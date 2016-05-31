@@ -140,7 +140,6 @@ def band_schema(nr):
 
 	return template('showsheet', pageTitle='bandschema', day1=day1, day2=day2, day3=day3, spelschema=spelschema)
 
-
 @route('/book_band')
 def band_booking():
 	return template('add_user', pageTitle='Lägg till band')
@@ -414,7 +413,7 @@ def new_show_post():
 
 		sql="INSERT INTO spelar(Start_tid, Slut_tid, Scen_id, Band_id) VALUES(%s, %s, %s, %s)"
 		cursor.execute(sql, (show_start, show_end, scen_id, band_id,))
-		db.commit()
+		#db.commit()
 		hang_up_on_database()
 		redirect('/add_play')
 
