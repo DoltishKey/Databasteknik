@@ -189,7 +189,8 @@ def ajax_new_artist(nr):
 	pers_nr = request.forms.get('pers_nr')
 	sql = "SELECT * FROM artist WHERE Pers_nr = %s"
 	cursor.execute(sql, (pers_nr,))
-	result = (cursor.fetchall())
+	result = cursor.fetchall()
+	hang_up_on_database()
 	artist_info = {}
 	if len(result) == 1:
 		artist_info = {}
@@ -204,7 +205,6 @@ def ajax_new_artist(nr):
 	else:
 		artist_info['status'] = 'Finns_inte'
 
-	hang_up_on_database()
 	return json.JSONEncoder().encode(artist_info)
 
 
@@ -221,7 +221,6 @@ def staff():
 @route('/do_add_staff', method="POST")
 def staff():
 	cursor = call_database()
-	global db
 	namn = request.forms.get('staff-name')
 	personnummer = request.forms.get('staff-pernr')
 	tele = request.forms.get('staff-tele')
@@ -236,7 +235,6 @@ def staff():
 @route('/remove_staff/<pers_nr>')
 def remove_staff(pers_nr):
 	cursor = call_database()
-	global db
 	sql="DELETE FROM personal WHERE Pers_nr = %s"
 	cursor.execute(sql, (int(pers_nr),))
 	db.commit()
@@ -246,27 +244,25 @@ def remove_staff(pers_nr):
 @route('/security')
 def security():
 	cursor = call_database()
+	global db
 	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
-		FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) \
-		JOIN scen on scenId = id \
+			FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+	scen on scenId = id \
 	ORDER BY scen.Namn DESC, sakerhetsansvarig.starttid"
 	cursor.execute(sql)
 	security = cursor.fetchall()
 
 	sql = "SELECT personal.namn, personal.Pers_nr, scen.Namn, scen.id, sakerhetsansvarig.starttid, personal.erfarenhet \
-	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) \
-		JOIN scen on scenId = id \
+	FROM (sakerhetsansvarig JOIN personal ON persId = Pers_nr) JOIN \
+	scen on scenId = id \
 	UNION ALL \
-		SELECT personal.Namn, personal.Pers_nr, null, null,null, personal.erfarenhet \
-		FROM personal \
-		LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
-		WHERE kontakt.Pers_nr Is Null"
+	SELECT personal.Namn, personal.Pers_nr, null, null, null, personal.erfarenhet FROM personal \
+	LEFT JOIN kontakt ON personal.Pers_nr = kontakt.Pers_nr \
+	WHERE kontakt.Pers_nr Is Null"
 	cursor.execute(sql)
 	staff_members = cursor.fetchall()
 
 	scens = get_scener(cursor)
-
-
 	days = ['2016-10-10', '2016-10-11', '2016-10-12']
 	times = ['00:00:00', '04:00:00', '08:00:00', '12:00:00', '16:00:00', '20:00:00']
 	hang_up_on_database()
@@ -280,7 +276,9 @@ def assign_security():
 	staff = int(request.forms.get('new_person'))
 	cursor = call_database()
 	sql="INSERT INTO sakerhetsansvarig(starttid, persId, scenId) \
-		VALUES(%s, %s, %s)"
+		VALUES(%s, \
+		(SELECT Pers_nr FROM personal WHERE Pers_nr = %s),\
+		(SELECT id FROM scen WHERE id = %s))"
 	cursor.execute(sql, (time, staff, scen,))
 	db.commit()
 	hang_up_on_database()
@@ -393,7 +391,6 @@ def new_show_post():
 		cursor.execute(sql_scen_id, (vilken_scen,))
 		scen_id=cursor.fetchall()
 
-
 		#Följade sql ska få ut de alla andra band som medlemmarna i ett specifik band är medlem i
 		sql_under_construction="SELECT h1.artist_id, spelar_i.band_id FROM (SELECT artist_id FROM spelar_i WHERE band_id=12) AS h1\
 								RIGHT JOIN spelar_i\
@@ -413,13 +410,14 @@ def new_show_post():
 
 		sql="INSERT INTO spelar(Start_tid, Slut_tid, Scen_id, Band_id) VALUES(%s, %s, %s, %s)"
 		cursor.execute(sql, (show_start, show_end, scen_id, band_id,))
-		#db.commit()
+		db.commit()
 		hang_up_on_database()
 		redirect('/add_play')
 
 
 @route('/edith_play')
 def edit__what_show():
+	'''Visar en vy på spelschemat med knapparna ändra & ta bort för varje spelninge'''
 	cursor=call_database()
 	spelschema=get_spelschema(cursor)
 	hang_up_on_database()
@@ -434,6 +432,7 @@ def edit__what_show():
 
 @route('/edith_play/<nr>')
 def edit_show(nr):
+	'''visar en vy för att ändra en spelning'''
 	nr=int(nr)
 	cursor=call_database()
 	show_info=get_show_info(cursor, nr)
@@ -558,7 +557,7 @@ def do_assign_contact(band_id):
 	global db
 	kontaktperson=int(request.forms.get('selected_candidate'))
 	band_id = int(band_id)
-	sql="INSERT INTO kontakt(Pers_nr, Band_id) VALUES( %s, %s)"
+	sql="INSERT INTO kontakt(Pers_nr, Band_id) VALUES( (SELECT Pers_nr FROM personal WHERE Pers_nr = %s), (SELECT id FROM band WHERE id = %s) )"
 	cursor.execute(sql, (kontaktperson, band_id,))
 	db.commit()
 	hang_up_on_database()
@@ -641,7 +640,6 @@ def contact_staff():
 @route('/remove_contact/<band_id>', method="POST")
 def remove_contact(band_id):
 	cursor = call_database()
-	global db
 	band_id = int(band_id)
 	sql = "DELETE FROM kontakt WHERE band_id = %s"
 	cursor.execute(sql, (band_id,))
