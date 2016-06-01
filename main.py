@@ -263,7 +263,7 @@ def security():
 	staff_members = cursor.fetchall()
 
 	scens = get_scener(cursor)
-	days = ['2016-10-10', '2016-10-11', '2016-10-12']
+	days = ['2016-06-10', '2016-06-11', '2016-06-12']
 	times = ['00:00:00', '04:00:00', '08:00:00', '12:00:00', '16:00:00', '20:00:00']
 	hang_up_on_database()
 
